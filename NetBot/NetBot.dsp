@@ -40,7 +40,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 F90=df.exe
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /Fr /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ZLIB_WINAPI" /Fr /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x804 /d "NDEBUG" /d "_AFXDLL"
@@ -413,27 +413,11 @@ SOURCE=.\res\upfile.ico
 # End Group
 # Begin Source File
 
-SOURCE=.\res\fsg.exe
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\nb.exe
-# End Source File
-# Begin Source File
-
-SOURCE=..\svchost\nb.exe
-# End Source File
-# Begin Source File
-
 SOURCE=.\ReadMe.txt
 # End Source File
 # Begin Source File
 
 SOURCE=.\res\SEARCH.AVI
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\service.exe
 # End Source File
 # Begin Source File
 

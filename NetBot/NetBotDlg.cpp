@@ -212,7 +212,7 @@ void CNetBotDlg::CreateIniFile()
 		m_Ini.SetKeyValue("Server Settin","IPFile","http://www.a.com/ip.jpg");
 		m_Ini.SetKeyValue("Server Setting","ConnectPass","111111");
 		
-		m_Ini.SetKeyValue("FTP Setting","FtpAddress","101.102.103.104");
+		m_Ini.SetKeyValue("FTP Setting","FtpAddress","127.0.0.1");
 		m_Ini.SetKeyValue("FTP Setting","FtpPort","21");
 		m_Ini.SetKeyValue("FTP Setting","FtpUsername","lky");
 		m_Ini.SetKeyValue("FTP Setting","FtpPassword","lx");

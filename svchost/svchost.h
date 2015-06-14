@@ -1,5 +1,3 @@
-#include <windows.h>
-
 #include "shlwapi.h"
 #pragma comment(lib,"shlwapi.lib")
 
@@ -18,7 +16,7 @@
 #pragma comment(lib,"../Seu_lib/zlib.lib")	//图象无损数据压缩使用zlib库函数
 
 #include <winsock2.h>
-#pragma comment (lib,"ws2_32.lib")
+#pragma comment(lib, "ws2_32.lib")
 
 DWORD _stdcall ConnectThread(LPVOID lParam);
 DWORD _stdcall FileManageThread(LPVOID lParam);

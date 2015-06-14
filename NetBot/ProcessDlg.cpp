@@ -219,8 +219,7 @@ DWORD CProcessDlg::ListProcess()
 	m_MsgHead.dwSize = 0;
 
 	//数据传输同时接收数据
-	if( !SendMsg(m_ConnSocket, m_Buffer, &m_MsgHead) ||
-		!RecvMsg(m_ConnSocket, m_Buffer, &m_MsgHead))
+	if( !SendMsg(m_ConnSocket, m_Buffer, &m_MsgHead) || !RecvMsg(m_ConnSocket, m_Buffer, &m_MsgHead))
 	{
 		//数据传输失败
 		StatusTextOut(0, "通信失败");
@@ -283,8 +282,7 @@ DWORD CProcessDlg::KillProcess()
 	m_MsgHead.dwExtend1 = dwPid;
 
 	//数据传输同时接收数据
-	if( !SendMsg(m_ConnSocket, m_Buffer, &m_MsgHead) ||
-		!RecvMsg(m_ConnSocket, m_Buffer, &m_MsgHead))
+	if( !SendMsg(m_ConnSocket, m_Buffer, &m_MsgHead) || !RecvMsg(m_ConnSocket, m_Buffer, &m_MsgHead))
 	{
 		//数据传输失败
 		StatusTextOut(0, "通信失败");
@@ -320,7 +318,7 @@ CString CProcessDlg::__MakePriority(DWORD dwPriClass)
 	case HIGH_PRIORITY_CLASS:
 		strRet = "高";
 		break;
-	case 0x00008000:	//ABOVE_NORMAL_PRIORITY_CLASS:
+	case 0x00008000:	//ABOVE_NORMAL_PRIORITY_CLASS
 		strRet = "高于标准";
 		break;
 	case NORMAL_PRIORITY_CLASS:

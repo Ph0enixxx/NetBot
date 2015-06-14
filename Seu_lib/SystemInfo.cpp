@@ -17,18 +17,21 @@ BOOL GetSystemInfo(SysInfo& info)
 	switch (osvi.dwPlatformId)
 	{
       case VER_PLATFORM_WIN32_NT:
-		    if (osvi.dwMajorVersion == 6 && osvi.dwMinorVersion == 0 )
-				lstrcpy(szSystem, "Win Vista");
-			if (osvi.dwMajorVersion == 6 && osvi.dwMinorVersion == 1 )
-				lstrcpy(szSystem, "Win 7");
-		    if ( osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 2 )
-			    lstrcpy(szSystem, "Win 2003");
-			if ( osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 1 )
-			    lstrcpy(szSystem, "Win XP");
-            if ( osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 0 )
-			    lstrcpy(szSystem, "Win 2000");
-            if ( osvi.dwMajorVersion <= 4 )
-			    lstrcpy(szSystem, "Win NT");
+		    if (osvi.dwMajorVersion == 6)
+			{
+				if (osvi.dwMinorVersion == 0) lstrcpy(szSystem, "Win Vista");
+				if (osvi.dwMinorVersion == 1) lstrcpy(szSystem, "Win 7");
+				if (osvi.dwMinorVersion == 2) lstrcpy(szSystem, "Win 8");
+				if (osvi.dwMinorVersion == 3) lstrcpy(szSystem, "Win 8.1");
+			}
+			else if (osvi.dwMajorVersion == 5)
+			{
+				if (osvi.dwMinorVersion == 0) lstrcpy(szSystem, "Win 2000");
+				if (osvi.dwMinorVersion == 1) lstrcpy(szSystem, "Win XP");
+				if (osvi.dwMinorVersion == 2) lstrcpy(szSystem, "Win 2003");
+			}
+			else if (osvi.dwMajorVersion == 10) lstrcpy(szSystem, "Windows 10");
+            else if (osvi.dwMajorVersion <= 4) lstrcpy(szSystem, "Win NT");
          break;
       case VER_PLATFORM_WIN32_WINDOWS:
          if (osvi.dwMajorVersion == 4 && osvi.dwMinorVersion == 0)

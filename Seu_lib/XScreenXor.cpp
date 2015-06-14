@@ -68,9 +68,9 @@ void XScreenXor::InitGlobalVar()
 	//计算位图头大小和位图大小
 	int biSize = sizeof(BITMAPINFOHEADER);
 	if (m_nColor > 8)
-			m_InfoSize = biSize;
-		else
-			m_InfoSize = biSize + (1 << m_nColor) * sizeof(RGBQUAD);
+		m_InfoSize = biSize;
+	else
+		m_InfoSize = biSize + (1 << m_nColor) * sizeof(RGBQUAD);
 	
 	m_BmpSize =m_InfoSize + ((m_ScrWidth * m_nColor + 31) / 32 * 4) * m_ScrHeigth;
 	
@@ -101,7 +101,6 @@ void XScreenXor::InitGlobalVar()
 	hMemDC = CreateCompatibleDC(hScreenDC);
 	//创建一个与屏幕设备描述表兼容的位图
 	hBitmap = CreateCompatibleBitmap(hScreenDC, m_ScrWidth, m_ScrHeigth);
-
 }
 
 int XScreenXor::GetInfoSize() const

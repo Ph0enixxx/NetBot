@@ -16,6 +16,8 @@
 #include <tchar.h>
 #pragma warning(disable : 4200)
 
+OpenUserDesktop();
+
 // TODO: reference additional headers your program requires here
 
 //{{AFX_INSERT_LOCATION}}
