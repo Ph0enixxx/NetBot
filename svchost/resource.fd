@@ -1,0 +1,5 @@
+!MS$FREEFORM
+! Microsoft Developer Studio generated include file.
+! Used by svchost.rc
+!
+      integer, parameter :: IDC_CURSOR1                     = 101

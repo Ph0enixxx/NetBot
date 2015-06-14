@@ -1,0 +1,54 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: NetBot - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating command line "rc.exe /l 0x804 /fo"Release/NetBot.res" /d "NDEBUG" "E:\VC++\NBVip5.5\NetBot\NetBot.rc"" 
+Creating temporary file "c:\Temp\RSPBB9.tmp" with contents
+[
+/nologo /subsystem:windows /pdb:none /machine:I386 /nodefaultlib:"MSVCRT.lib" /out:"..\NetBot_Cn.exe" 
+".\Release\AviFile.obj"
+".\Release\CmdEdit.obj"
+".\Release\Command.obj"
+".\Release\DDosDlg.obj"
+".\Release\Debug.obj"
+".\Release\FileDlg.obj"
+".\Release\FileTranDlg.obj"
+".\Release\IniFile.obj"
+".\Release\NetBot.obj"
+".\Release\NetBotDlg.obj"
+".\Release\ProcessDlg.obj"
+".\Release\ScreenDlg.obj"
+".\Release\ServerDlg.obj"
+".\Release\SetDlg.obj"
+".\Release\SEU_QQwry.obj"
+".\Release\ShellDlg.obj"
+".\Release\SortList.obj"
+".\Release\SplashScreenEx.obj"
+".\Release\StatLink.obj"
+".\Release\StdAfx.obj"
+".\Release\TrueColorToolBar.obj"
+".\Release\UpdateDlg.obj"
+".\Release\VideoDlg.obj"
+".\Release\XPictureBox.obj"
+".\Release\XScreenXor.obj"
+".\Release\NetBot.res"
+".\zlib.lib"
+]
+Creating command line "link.exe @c:\Temp\RSPBB9.tmp"
+<h3>Output Window</h3>
+Compiling resources...
+Linking...
+LINK : warning LNK4049: locally defined symbol "_malloc" imported
+LINK : warning LNK4049: locally defined symbol "_free" imported
+
+
+
+<h3>Results</h3>
+NetBot_Cn.exe - 0 error(s), 2 warning(s)
+</pre>
+</body>
+</html>
