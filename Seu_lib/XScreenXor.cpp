@@ -187,12 +187,14 @@ void  XScreenXor::CaputreFrameFirst(DWORD dwFrame)
 {
 	//截取屏幕
 	SaveScreenBits();
+
+	memcpy(m_pDataSave, m_pData, m_BmpSize);
 	
-	int iCount = m_BmpSize/sizeof(DWORD);
-	for (int i=0; i < iCount; i++)
-	{
-		((PDWORD)m_pDataSave)[i] = ((PDWORD)m_pData)[i];
-	}
+// 	int iCount = m_BmpSize / sizeof(DWORD);
+// 	for (int i = 0; i < iCount; i++)
+// 	{
+// 		((PDWORD)m_pDataSave)[i] = ((PDWORD)m_pData)[i];
+// 	}
 }
 
 void  XScreenXor::CaputreFrameNext(DWORD dwFrame)
@@ -200,13 +202,19 @@ void  XScreenXor::CaputreFrameNext(DWORD dwFrame)
 	//截取屏幕
 	SaveScreenBits();
 	
-	int iCount = m_BmpSize/sizeof(DWORD);
+	int iCount = m_BmpSize / sizeof(DWORD);
 	
-	for (int i=0; i < iCount; i++)
+	for (int i = 0; i < iCount; i++)
 	{
-		((PDWORD)m_pData)[i] ^= ((PDWORD)m_pDataSave)[i];
+		//((PDWORD)m_pData)[i] ^= ((PDWORD)m_pDataSave)[i];
+		//((PDWORD)m_pDataSave)[i] ^= ((PDWORD)m_pData)[i];
+
 		((PDWORD)m_pDataSave)[i] ^= ((PDWORD)m_pData)[i];
 	}
+
+	BYTE* tmp = m_pDataSave;
+	m_pDataSave = m_pData;
+	m_pData = tmp;
 }
 
 //you should call function 'InitGlobalVar' first
@@ -237,8 +245,8 @@ inline void XScreenXor::SaveScreenBits()
 void XScreenXor::XorFrame()
 {
 	//更新差异到m_pData
-	int iCount = m_BmpSize/sizeof(DWORD);
-	for (int i=0; i < m_BmpSize; i++)	//i < m_BmpSize/4
+	int iCount = m_BmpSize / sizeof(DWORD);
+	for (int i = 0; i < m_BmpSize; i++)	//i < m_BmpSize/4
 	{
 		((PDWORD)m_pData)[i] ^= ((PDWORD)m_pDataSave)[i];
 	}

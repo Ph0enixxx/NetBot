@@ -2,26 +2,6 @@
 #include "Process.h"
 #include <tlhelp32.h>
 
-int GrantPrivilege()
-{
-	HANDLE            hToken;
-	TOKEN_PRIVILEGES  TokenPrivileges;
-	
-	if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken) == 0)
-	{
-		return 0;
-	}
-	
-	TokenPrivileges.PrivilegeCount = 1;
-	TokenPrivileges.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-	LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &TokenPrivileges.Privileges[0].Luid);
-	AdjustTokenPrivileges(hToken, FALSE, &TokenPrivileges, sizeof(TOKEN_PRIVILEGES), NULL, NULL);
-	
-	CloseHandle(hToken);
-	
-	return 1;
-}
-
 void ProcessList(char *pBuf, LPMsgHead lpMsgHead)
 {
 	GrantPrivilege();

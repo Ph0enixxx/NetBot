@@ -16,7 +16,7 @@
 #include <tchar.h>
 #pragma warning(disable : 4200)
 
-OpenUserDesktop();
+#include "Functions.h"
 
 // TODO: reference additional headers your program requires here
 

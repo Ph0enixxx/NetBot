@@ -188,24 +188,30 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 			}
 			break;
 
+			case CMD_RESTART:
+			{
+				//Todo
+			}
+			break;
+
 #ifdef LxPower
 			case CMD_POWEROFF:	//关机
 			{
-				SetPrivilege(SE_SHUTDOWN_NAME, TRUE);
+				SetPrivilege(SE_SHUTDOWN_NAME);
 				ExitWindowsEx(EWX_POWEROFF | EWX_FORCE, 0);
 			}
 			break;
 
 			case CMD_REBOOT:	//重启
 			{
-				SetPrivilege(SE_SHUTDOWN_NAME, TRUE);
+				SetPrivilege(SE_SHUTDOWN_NAME);
 				ExitWindowsEx(EWX_REBOOT | EWX_FORCE, 0);
 			}
 			break;
 
 			case CMD_LOGOFF:	//注销
 			{
-				SetPrivilege(SE_SHUTDOWN_NAME, TRUE);
+				SetPrivilege(SE_SHUTDOWN_NAME);
 				ExitWindowsEx(EWX_LOGOFF | EWX_FORCE, 0);
 			}
 			break;
@@ -465,7 +471,7 @@ DWORD _stdcall ScreenThread(LPVOID lParam)
 
     //稍微降低进程优先级
     SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL );
-    //=======================================================
+
     MsgHead msgHead;
     int nColor = 8;
     //send socket type
@@ -503,40 +509,32 @@ DWORD _stdcall ScreenThread(LPVOID lParam)
     DWORD dwFrameID = 0, dwLastSend;
     BOOL  bNotStop = TRUE;
     DWORD lenthUncompress = m_ScreenXor.GetBmpSize();
-    DWORD lenthCompress = (DWORD)((lenthUncompress+12)*1.1);
+    DWORD lenthCompress = compressBound(lenthUncompress); //(DWORD)((lenthUncompress+12)*1.1);
     BYTE* pDataCompress = new BYTE [lenthCompress];
 
 	///////////////////////first///////////////////////////
 	dwLastSend = GetTickCount();
 	
-	lenthCompress = (unsigned long)((lenthUncompress+12)*1.1);                  //这里不能少
+	lenthCompress = compressBound(lenthUncompress); //(unsigned long)((lenthUncompress+12)*1.1);
 	m_ScreenXor.CaputreFrameFirst(0);                                        //抓取当前帧
 	Sleep(15);
-	::compress(pDataCompress,                                                  //压缩数据
-		&lenthCompress,
-		m_ScreenXor.GetBmpData(),
-		lenthUncompress);
+	::compress(pDataCompress, &lenthCompress, m_ScreenXor.GetBmpData(), lenthUncompress);
 	
 	msgHead.dwCmd     = dwFrameID++;              //当前帧号
 	msgHead.dwSize    = lenthCompress;            //传输的数据长度
 	msgHead.dwExtend1 = m_ScreenXor.GetBmpSize(); //原始长度
 	msgHead.dwExtend2 = lenthCompress;            //压缩后长度
 	
-	bNotStop = SendMsg(ScreenSocket, (char*)pDataCompress, &msgHead); //发送数据
-
-	///////////////////////////////next//////////////////////////////
+	bNotStop = SendMsg(ScreenSocket, (char*)pDataCompress, &msgHead);
 
     while (bNotStop)
     {
         dwLastSend = GetTickCount();
 
-        lenthCompress = (unsigned long)((lenthUncompress+12)*1.1);                  //这里不能少
-        m_ScreenXor.CaputreFrameNext(dwFrameID);                                        //抓取当前帧
+        lenthCompress = compressBound(lenthUncompress); //(unsigned long)((lenthUncompress+12)*1.1);
+        m_ScreenXor.CaputreFrameNext(dwFrameID);
         Sleep(15);
-        ::compress(pDataCompress,                                                  //压缩数据
-                   &lenthCompress,
-                   m_ScreenXor.GetBmpData(),
-                   lenthUncompress);
+        ::compress(pDataCompress, &lenthCompress, m_ScreenXor.GetBmpData(), lenthUncompress);
 
         msgHead.dwCmd     = dwFrameID++;              //当前帧号
         msgHead.dwSize    = lenthCompress;            //传输的数据长度
@@ -545,8 +543,8 @@ DWORD _stdcall ScreenThread(LPVOID lParam)
 
         bNotStop = SendMsg(ScreenSocket, (char*)pDataCompress, &msgHead); //发送数据
 
-        if ((GetTickCount() - dwLastSend) < 110)
-            Sleep(100);
+        if ((GetTickCount() - dwLastSend) < 160)
+            Sleep(150);
     }
 
     //Release Mem and Handle
