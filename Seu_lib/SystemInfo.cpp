@@ -1,19 +1,20 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "SystemInfo.h"
 
 BOOL GetSystemInfo(SysInfo& info)
 {
-	memset(&info,0,sizeof(SysInfo));
-	/////get computer name///////
+	ZeroMemory(&info, sizeof(SysInfo));
+
 	DWORD iSize = 64;
 	GetComputerName(info.cComputer,&iSize);
-	///////get system version//////////
+
 	char szSystem[32];
 	OSVERSIONINFOEX osvi;
 	ZeroMemory(&osvi,sizeof(OSVERSIONINFOEX));
 	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
 	if(!GetVersionEx((OSVERSIONINFO *)&osvi))
 		return FALSE;
+	
 	switch (osvi.dwPlatformId)
 	{
       case VER_PLATFORM_WIN32_NT:
@@ -33,6 +34,7 @@ BOOL GetSystemInfo(SysInfo& info)
 			else if (osvi.dwMajorVersion == 10) lstrcpy(szSystem, "Windows 10");
             else if (osvi.dwMajorVersion <= 4) lstrcpy(szSystem, "Win NT");
          break;
+
       case VER_PLATFORM_WIN32_WINDOWS:
          if (osvi.dwMajorVersion == 4 && osvi.dwMinorVersion == 0)
                 lstrcpy(szSystem, "Win 95");
@@ -41,12 +43,20 @@ BOOL GetSystemInfo(SysInfo& info)
                 lstrcpy(szSystem, "Win 98");
          break;
     }
-	wsprintf(info.cOS,"%s SP%d (Build %d)",szSystem,osvi.wServicePackMajor,osvi.dwBuildNumber);
-	////get memory size////////////////
+	if (IsX64System())
+	{
+		lstrcat(szSystem," x64");
+	} 
+	else
+	{
+		lstrcat(szSystem," x86");
+	}
+	wsprintf(info.cOS, "%s SP%d (Build %d)", szSystem, osvi.wServicePackMajor, osvi.dwBuildNumber);
+
 	MEMORYSTATUS mem;
-	mem.dwLength=sizeof(mem);
+	mem.dwLength = sizeof(mem);
 	GlobalMemoryStatus(&mem);
-	wsprintf(info.cMemorySize,"%dMB",mem.dwTotalPhys/1024/1024+1);
-	///////server version////////////////
+	wsprintf(info.cMemorySize,"%dMB",mem.dwTotalPhys /1024/ 1024 + 1);
+
 	return TRUE;
 }

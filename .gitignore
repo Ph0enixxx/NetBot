@@ -40,3 +40,6 @@ $tf*/
 *.dat
 *.positions
 *.plg
+*.opt
+*.res
+*.idb

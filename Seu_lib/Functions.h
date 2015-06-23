@@ -46,5 +46,7 @@ void OpenUrl(char url[]);
 BOOL OpenUserDesktop();
 int GrantPrivilege();
 
+BOOL IsX64System();
+
 #endif //_SEURAT_FUNCTIONS_H__
 

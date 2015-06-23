@@ -76,8 +76,7 @@ private:
 private:
 	DWORD ThreadAccept();           //接受服务端连接线程
 	DWORD ThreadCheck();            //在线检测线程
-	int checkfun();
-	
+	int checkfun();	
 	void ListenError(int ErrorCode);
 	/////////////////////////////
 	//字符串函数

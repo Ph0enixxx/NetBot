@@ -43,7 +43,7 @@ void ProcessList(char *pBuf, LPMsgHead lpMsgHead)
 		LxQueryFullProcessImageName(hProcess, 0, Info.FilePath, &rt);
 		CloseHandle(hProcess);
 
-		memcpy(pBuf+dwLen,&Info,sizeof(ProcessInfo));
+		memcpy(pBuf + dwLen, &Info, sizeof(ProcessInfo));
 		dwLen += sizeof(ProcessInfo);
 
 		bContinue = Process32Next(hSnapshot, &PInfo); 	

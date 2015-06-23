@@ -201,8 +201,10 @@ DWORD CVideoDlg::RecvVideo()
 			BYTE* pCompress = new BYTE [msgHead.dwExtend2];
 			BYTE* pUnCompress = new BYTE[msgHead.dwExtend1]; 
 			//按该帧数据实际长度接受该帧数据
-			int iRecvLen = 0;
-			int iRecved;
+
+			//int iRecvLen = 0,iRecved;
+			ULONG iRecvLen = 0,iRecved;
+
 			m_Progress.SetRange(0, (short)msgHead.dwSize);//进度条
 			while (iRecvLen < msgHead.dwSize)
 			{
@@ -228,7 +230,7 @@ DWORD CVideoDlg::RecvVideo()
 				m_Progress.SetPos(iRecvLen);
 			}
 			/////////////////////////////////////////////
-			DWORD lenthUncompress=msgHead.dwExtend1;
+			DWORD lenthUncompress = msgHead.dwExtend1;
 			uncompress(pUnCompress,
 					&lenthUncompress,
 					pCompress,

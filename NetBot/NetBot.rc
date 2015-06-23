@@ -280,7 +280,7 @@ END
 
 IDR_FSG                 EXE                     "res\\fsg.exe"
 IDR_UPX                 EXE                     "res\\upx.exe"
-IDR_EXE                 EXE                     "..\\svchost\\nb.exe"
+IDR_EXE                 EXE                     "..\\nb.exe"
 IDR_DLL                 EXE                     "res\\SkinPPWTL.dll"
 
 /////////////////////////////////////////////////////////////////////////////

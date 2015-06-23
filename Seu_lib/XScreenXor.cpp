@@ -96,7 +96,7 @@ void XScreenXor::InitGlobalVar()
     bi.biClrImportant  = 0;
 
 	//获取桌面HDC
-	hScreenDC = CreateDC("DISPLAY",NULL,NULL,NULL);
+	hScreenDC = CreateDC("DISPLAY", NULL, NULL, NULL);
 	//为屏幕设备描述表创建兼容的内存设备描述表
 	hMemDC = CreateCompatibleDC(hScreenDC);
 	//创建一个与屏幕设备描述表兼容的位图

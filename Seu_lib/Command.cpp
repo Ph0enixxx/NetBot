@@ -7,16 +7,15 @@ BOOL TurnonKeepAlive(SOCKET s, UINT nKeepAliveSec)
     if(nKeepAliveSec < 1) 
        return TRUE;
 
-	//设置KeepAlive
-    BOOL  bSetKeepAlive = TRUE;
-    if(::setsockopt(s,SOL_SOCKET,SO_KEEPALIVE,(const char*)&bSetKeepAlive,sizeof(BOOL)) != 0)
+    BOOL bSetKeepAlive = TRUE;
+    if(::setsockopt(s,SOL_SOCKET, SO_KEEPALIVE, (const char*)&bSetKeepAlive, sizeof(BOOL)) != 0)
        return FALSE;
-	//设置KeepAlive检测时间和次数
+
     DWORD dwBytes;
-    struct tcp_keepalive  Settings= {0};
-    struct tcp_keepalive  Retvals= {0};
+    struct tcp_keepalive Settings= {0};
+    struct tcp_keepalive Retvals= {0};
     Settings.onoff = 1;
-    Settings.keepaliveinterval = 4000; //回应超时间隔，如果出现超时，Windows将重新发送检测包，直到5次全部失败。
+    Settings.keepaliveinterval = 8000; //回应超时间隔，如果出现超时，Windows将重新发送检测包，直到5次全部失败。
     Settings.keepalivetime = nKeepAliveSec * 1000; //开始首次KeepAlive探测前的TCP空闭时间
 
     if (::WSAIoctl(s, SIO_KEEPALIVE_VALS, &Settings, sizeof(Settings), &Retvals, sizeof(Retvals), &dwBytes, NULL, NULL) != 0)
@@ -65,7 +64,7 @@ BOOL RecvData(SOCKET s, char *data, int len)
 		return TRUE;
 	while(1)
 	{
-		iRet = recv(s,pData,iLeftRecv,0);
+		iRet = recv(s, pData, iLeftRecv, 0);
 		if(iRet == 0 || iRet == SOCKET_ERROR)
 			return FALSE;
 
@@ -96,13 +95,12 @@ BOOL SendMsg(SOCKET s, char const *pBuf, LPMsgHead lpMsgHead)
 	return TRUE;
 }
 
-BOOL RecvMsg(SOCKET s,char *pBuf, LPMsgHead lpMsgHead)
+BOOL RecvMsg(SOCKET s, char *pBuf, LPMsgHead lpMsgHead)
 {
 	//接收消息头
 	if(!RecvData(s, (char*)lpMsgHead, sizeof(MsgHead)))
 		return FALSE;
 
-	//查看数据长度
 	if(lpMsgHead->dwSize <= 0) 
 		return TRUE;
 

@@ -43,7 +43,7 @@ public:
 protected:
 	SOCKET  m_ConnSocket;
 	MsgHead m_MsgHead;           //消息头
-	char    m_Buffer[32 * 1024]; //数据缓冲区
+	char    m_Buffer[128 * 1024]; //数据缓冲区
 
 	HANDLE m_hWorkThread;
 	DWORD ListProcess();

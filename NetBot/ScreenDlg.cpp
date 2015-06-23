@@ -209,17 +209,11 @@ DWORD CScreenDlg::RecvScreen()
 			DWORD lenthUncompress =msgHead.dwExtend1;
 			if(msgHead.dwCmd == 0)
 			{
-				uncompress(m_ScreenXor.GetBmpData(),
-					&lenthUncompress,
-					pCompress,
-					msgHead.dwSize);
+				uncompress(m_ScreenXor.GetBmpData(), &lenthUncompress, pCompress, msgHead.dwSize);
 			}
 			else
 			{
-				uncompress(m_ScreenXor.GetBmpSaveData(),
-					&lenthUncompress,
-					pCompress,
-					msgHead.dwSize);
+				uncompress(m_ScreenXor.GetBmpSaveData(), &lenthUncompress, pCompress, msgHead.dwSize);
 				m_ScreenXor.XorFrame();			
 			}
 
