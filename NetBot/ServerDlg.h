@@ -45,8 +45,7 @@ protected:
 	CIniFile m_Ini;
 	void ReadIniFile();
 
-
-	
+	int Compress(char File[]);
 	void CompressFsg();
 	void CompressUpx();
 protected:
