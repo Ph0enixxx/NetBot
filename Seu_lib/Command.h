@@ -22,12 +22,14 @@
 #define SOCKET_FILEDOWN   0x11000006 //文件下载的socket
 #define SOCKET_FILEUP     0x11000007 //文件上传的socket
 #define SOCKET_VIDEOCAP   0x11000008 //视频捕捉的socket
+#define SOCKET_DLLLOADER  0x11000009 //Loader的socket
 
 //基本命令
 #define CMD_SUCCEED       0x00000000 //命令执行成功
 #define CMD_FAILED        0x00000001 //命令执行失败
 #define CMD_INVALID       0x00000002 //无效命令
 #define CMD_HEARTBEAT     0x00000003 //心跳包
+#define CMD_DLLDATA       0x00000004 //Dll for Loader
 
 #define CMD_UNINSTALL     0x20000000 //卸载
 #define CMD_POWEROFF      0x20000001 //关机

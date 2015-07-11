@@ -217,14 +217,14 @@ int ResToFile(char Path[], DWORD id)
 	return 0;
 }
 
-int CServerDlg::Compress(char File[])
+int CServerDlg::Compress(char File[], DWORD id)
 {
     char PackerPath[256];
     GetCurrentDirectory(256, PackerPath);
 	lstrcat(PackerPath, File);
 	DeleteFile(PackerPath);
 	
-	ResToFile(PackerPath, IDR_FSG);
+	ResToFile(PackerPath, id);
 	
 	HANDLE hfsg = ShellExecute(this->m_hWnd, "open", PackerPath, Path , "", SW_HIDE);
 	
@@ -237,12 +237,12 @@ int CServerDlg::Compress(char File[])
 
 void CServerDlg::CompressFsg()
 {
-    Compress("\\fsg.exe");
+    Compress("\\fsg.exe", IDR_FSG);
 }
 
 void CServerDlg::CompressUpx()
 {
-    Compress("\\upx.exe");
+    Compress("\\upx.exe", IDR_UPX);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////

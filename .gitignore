@@ -43,3 +43,7 @@ $tf*/
 *.opt
 *.res
 *.idb
+*.map
+/NetBot_VTCP
+/VTCP
+*.exp
