@@ -84,16 +84,16 @@ void XScreenXor::InitGlobalVar()
 	m_pDataSave = new BYTE [m_BmpSize];
 
 	bi.biSize          = sizeof(BITMAPINFOHEADER);
-    bi.biWidth         = m_ScrWidth;
-    bi.biHeight        = m_ScrHeigth;
-    bi.biPlanes        = 1;
-    bi.biBitCount      = m_nColor;
-    bi.biCompression   = BI_RGB;
-    bi.biSizeImage     = 0;
-    bi.biXPelsPerMeter = 0;
-    bi.biYPelsPerMeter = 0;
-    bi.biClrUsed       = 0;
-    bi.biClrImportant  = 0;
+	bi.biWidth         = m_ScrWidth;
+	bi.biHeight        = m_ScrHeigth;
+	bi.biPlanes        = 1;
+	bi.biBitCount      = m_nColor;
+	bi.biCompression   = BI_RGB;
+	bi.biSizeImage     = 0;
+	bi.biXPelsPerMeter = 0;
+	bi.biYPelsPerMeter = 0;
+	bi.biClrUsed       = 0;
+	bi.biClrImportant  = 0;
 
 	//获取桌面HDC
 	hScreenDC = CreateDC("DISPLAY", NULL, NULL, NULL);
@@ -262,7 +262,7 @@ HBITMAP XScreenXor::GetBitmapFromData()
 	HDC hDC = CreateDC("DISPLAY", NULL, NULL, NULL);
 	// 创建DDB位图
 	hBitmap = CreateDIBitmap(
-		      hDC,
+			  hDC,
 			  &lpBmpInfo->bmiHeader,
 			  CBM_INIT,
 			  m_pData + m_InfoSize,
@@ -282,39 +282,39 @@ HBITMAP XScreenXor::GetBitmapFromData()
 BOOL XScreenXor::OpenUserDesktop()
 {
 	hwinstaCurrent = GetProcessWindowStation();
-    if (hwinstaCurrent == NULL)
+	if (hwinstaCurrent == NULL)
 		return FALSE;
 
-    hdeskCurrent = GetThreadDesktop(GetCurrentThreadId());
+	hdeskCurrent = GetThreadDesktop(GetCurrentThreadId());
 	if (hdeskCurrent == NULL)
 		return FALSE;
 
-    hwinsta = OpenWindowStation(_T("winsta0"), FALSE,
-                                  WINSTA_ACCESSCLIPBOARD   |
-                                  WINSTA_ACCESSGLOBALATOMS |
-                                  WINSTA_CREATEDESKTOP     |
-                                  WINSTA_ENUMDESKTOPS      |
-                                  WINSTA_ENUMERATE         |
-                                  WINSTA_EXITWINDOWS       |
-                                  WINSTA_READATTRIBUTES    |
-                                  WINSTA_READSCREEN        |
-                                  WINSTA_WRITEATTRIBUTES);
-    if (hwinsta == NULL)
+	hwinsta = OpenWindowStation(_T("winsta0"), FALSE,
+								  WINSTA_ACCESSCLIPBOARD   |
+								  WINSTA_ACCESSGLOBALATOMS |
+								  WINSTA_CREATEDESKTOP     |
+								  WINSTA_ENUMDESKTOPS      |
+								  WINSTA_ENUMERATE         |
+								  WINSTA_EXITWINDOWS       |
+								  WINSTA_READATTRIBUTES    |
+								  WINSTA_READSCREEN        |
+								  WINSTA_WRITEATTRIBUTES);
+	if (hwinsta == NULL)
 		return FALSE;
 
-    if (!SetProcessWindowStation(hwinsta))
+	if (!SetProcessWindowStation(hwinsta))
 		return FALSE;
 
-    hdesk = OpenDesktop(_T("default"), 0, FALSE,
-                            DESKTOP_CREATEMENU      |
+	hdesk = OpenDesktop(_T("default"), 0, FALSE,
+							DESKTOP_CREATEMENU      |
 							DESKTOP_CREATEWINDOW    |
-                            DESKTOP_ENUMERATE       |
-                            DESKTOP_HOOKCONTROL     |
-                            DESKTOP_JOURNALPLAYBACK |
-                            DESKTOP_JOURNALRECORD   |
-                            DESKTOP_READOBJECTS     |
-                            DESKTOP_SWITCHDESKTOP   |
-                            DESKTOP_WRITEOBJECTS);
+							DESKTOP_ENUMERATE       |
+							DESKTOP_HOOKCONTROL     |
+							DESKTOP_JOURNALPLAYBACK |
+							DESKTOP_JOURNALRECORD   |
+							DESKTOP_READOBJECTS     |
+							DESKTOP_SWITCHDESKTOP   |
+							DESKTOP_WRITEOBJECTS);
 	if (hdesk == NULL)
 		return FALSE;
 

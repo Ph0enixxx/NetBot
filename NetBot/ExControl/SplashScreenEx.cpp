@@ -74,7 +74,7 @@ BOOL CSplashScreenEx::Create(CWnd *pWndParent,LPCTSTR szText,DWORD dwStyle)
 		wcx.style|=CS_DROPSHADOW;
 
 	ATOM classAtom = RegisterClassEx(&wcx);
-      
+	  
 	// didn't work? try not using dropshadow (may not be supported)
 
 	if (classAtom==NULL)

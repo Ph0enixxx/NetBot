@@ -117,10 +117,6 @@ SOURCE=.\stub.bin
 # End Group
 # Begin Source File
 
-SOURCE=.\NBVip.dll
-# End Source File
-# Begin Source File
-
 SOURCE=.\ReadMe.txt
 # End Source File
 # End Target

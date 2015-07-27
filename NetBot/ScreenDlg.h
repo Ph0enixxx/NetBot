@@ -49,7 +49,7 @@ public:
 
 // Implementation
 protected:
-    int m_Color;
+	int m_Color;
 	BOOL m_bStop;
 	BOOL m_bCtrl;//ÊÇ·ñÔÊÐí¿ØÖÆ
 	SOCKET m_ConnSocket;

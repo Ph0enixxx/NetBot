@@ -230,6 +230,7 @@ BEGIN
         MENUITEM "注销",                          ID_ONLINE_LOGOFF
         MENUITEM SEPARATOR
         MENUITEM "卸载",                          ID_ONLINE_UNINSTALL
+        MENUITEM "重新加载",                       ID_ONLINE_RESTART
     END
 END
 

@@ -4,25 +4,25 @@
 //开启TCP保活机制
 BOOL TurnonKeepAlive(SOCKET s, UINT nKeepAliveSec)
 {
-    if(nKeepAliveSec < 1) 
-       return TRUE;
+	if(nKeepAliveSec < 1) 
+	   return TRUE;
 
-    BOOL bSetKeepAlive = TRUE;
-    if(::setsockopt(s,SOL_SOCKET, SO_KEEPALIVE, (const char*)&bSetKeepAlive, sizeof(BOOL)) != 0)
-       return FALSE;
+	BOOL bSetKeepAlive = TRUE;
+	if(::setsockopt(s,SOL_SOCKET, SO_KEEPALIVE, (const char*)&bSetKeepAlive, sizeof(BOOL)) != 0)
+	   return FALSE;
 
-    DWORD dwBytes;
-    struct tcp_keepalive Settings= {0};
-    struct tcp_keepalive Retvals= {0};
-    Settings.onoff = 1;
-    Settings.keepaliveinterval = 8000; //回应超时间隔，如果出现超时，Windows将重新发送检测包，直到5次全部失败。
-    Settings.keepalivetime = nKeepAliveSec * 1000; //开始首次KeepAlive探测前的TCP空闭时间
+	DWORD dwBytes;
+	struct tcp_keepalive Settings= {0};
+	struct tcp_keepalive Retvals= {0};
+	Settings.onoff = 1;
+	Settings.keepaliveinterval = 8000; //回应超时间隔，如果出现超时，Windows将重新发送检测包，直到5次全部失败。
+	Settings.keepalivetime = nKeepAliveSec * 1000; //开始首次KeepAlive探测前的TCP空闭时间
 
-    if (::WSAIoctl(s, SIO_KEEPALIVE_VALS, &Settings, sizeof(Settings), &Retvals, sizeof(Retvals), &dwBytes, NULL, NULL) != 0)
-    {
+	if (::WSAIoctl(s, SIO_KEEPALIVE_VALS, &Settings, sizeof(Settings), &Retvals, sizeof(Retvals), &dwBytes, NULL, NULL) != 0)
+	{
 		return FALSE;
 	}
-    return TRUE;
+	return TRUE;
 }
 
 //发送数据

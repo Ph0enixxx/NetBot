@@ -17,8 +17,8 @@ BOOL GetSystemInfo(SysInfo& info)
 	
 	switch (osvi.dwPlatformId)
 	{
-      case VER_PLATFORM_WIN32_NT:
-		    if (osvi.dwMajorVersion == 6)
+	  case VER_PLATFORM_WIN32_NT:
+			if (osvi.dwMajorVersion == 6)
 			{
 				if (osvi.dwMinorVersion == 0) lstrcpy(szSystem, "Win Vista");
 				if (osvi.dwMinorVersion == 1) lstrcpy(szSystem, "Win 7");
@@ -32,17 +32,17 @@ BOOL GetSystemInfo(SysInfo& info)
 				if (osvi.dwMinorVersion == 2) lstrcpy(szSystem, "Win 2003");
 			}
 			else if (osvi.dwMajorVersion == 10) lstrcpy(szSystem, "Windows 10");
-            else if (osvi.dwMajorVersion <= 4) lstrcpy(szSystem, "Win NT");
-         break;
+			else if (osvi.dwMajorVersion <= 4) lstrcpy(szSystem, "Win NT");
+		 break;
 
-      case VER_PLATFORM_WIN32_WINDOWS:
-         if (osvi.dwMajorVersion == 4 && osvi.dwMinorVersion == 0)
-                lstrcpy(szSystem, "Win 95");
+	  case VER_PLATFORM_WIN32_WINDOWS:
+		 if (osvi.dwMajorVersion == 4 && osvi.dwMinorVersion == 0)
+				lstrcpy(szSystem, "Win 95");
 
-         if (osvi.dwMajorVersion == 4 && osvi.dwMinorVersion == 10)
-                lstrcpy(szSystem, "Win 98");
-         break;
-    }
+		 if (osvi.dwMajorVersion == 4 && osvi.dwMinorVersion == 10)
+				lstrcpy(szSystem, "Win 98");
+		 break;
+	}
 	if (IsX64System())
 	{
 		lstrcat(szSystem," x64");

@@ -321,6 +321,7 @@
 #define ID_S_HELP                       32814
 #define ID_S_ABOUT                      32815
 #define ID_S_CLEAR                      32816
+#define ID_ONLINE_RESTART               32817
 
 // Next default values for new objects
 // 

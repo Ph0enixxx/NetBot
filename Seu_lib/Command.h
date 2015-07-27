@@ -145,7 +145,7 @@ typedef struct tagDriver
 //文件信息结构体
 typedef struct tagFileInfo
 {
-    int  iType;         //1-目录，2-文件，3-无效目录
+	int  iType;         //1-目录，2-文件，3-无效目录
 	char cFileName[64]; //文件名
 	char cAttrib[32];   //文件属性
 	char cTime[32];     //时间

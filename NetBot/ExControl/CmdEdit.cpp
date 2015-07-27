@@ -16,8 +16,8 @@ static char THIS_FILE[] = __FILE__;
 CCmdEdit::CCmdEdit()
 {
 	m_clrFore=RGB(255,255,255);//×Ö°×É«
-    m_clrBack=RGB(0,0,0);//±³¾°ºÚÉ«
-    m_brush.CreateSolidBrush(m_clrBack);
+	m_clrBack=RGB(0,0,0);//±³¾°ºÚÉ«
+	m_brush.CreateSolidBrush(m_clrBack);
 }
 
 CCmdEdit::~CCmdEdit()
@@ -38,8 +38,8 @@ HBRUSH CCmdEdit::CtlColor(CDC* pDC, UINT nCtlColor)
 {
 	// TODO: Change any attributes of the DC here
 	pDC->SetTextColor(m_clrFore);
-    pDC->SetBkColor(m_clrBack);
-    return (HBRUSH)m_brush.GetSafeHandle();
+	pDC->SetBkColor(m_clrBack);
+	return (HBRUSH)m_brush.GetSafeHandle();
 	// TODO: Return a non-NULL brush if the parent's handler should not be called
 	return NULL;
 }

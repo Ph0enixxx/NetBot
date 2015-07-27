@@ -62,13 +62,13 @@ void CScreenDlg::OnSelectScreenBytes(UINT nID)
 		break;
 	case IDC_RADIO_COLOR3:
 		m_Color = 24;
-	    break;
+		break;
 	case IDC_RADIO_COLOR4:
 		m_Color = 32;
-	    break;
+		break;
 	default:
 		m_Color = 8;
-	    break;
+		break;
 	}
 }
 
@@ -146,7 +146,7 @@ DWORD CScreenDlg::RecvScreen()
 	int rcvbufsize=sizeof(int);
 	setsockopt(m_ConnSocket,SOL_SOCKET,SO_SNDBUF,(char*)&rcvbuf,rcvbufsize);
 	int bNodelay = 1;
-    setsockopt(m_ConnSocket,IPPROTO_TCP,TCP_NODELAY,(char*)&bNodelay,sizeof(bNodelay));//不采用延时算法   
+	setsockopt(m_ConnSocket,IPPROTO_TCP,TCP_NODELAY,(char*)&bNodelay,sizeof(bNodelay));//不采用延时算法   
 
 	MsgHead msgHead;
 	msgHead.dwCmd = SOCKET_SCREEN;

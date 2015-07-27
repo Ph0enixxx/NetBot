@@ -58,7 +58,7 @@ END_MESSAGE_MAP()
 void CSetDlg::ReadIniFile()
 {
 	char Path[255];
-    GetCurrentDirectory(255, Path);
+	GetCurrentDirectory(255, Path);
 	CString path;
 	path.Format("%s\\NetBot.ini",Path);
 	if(m_Ini.SetPath(path))
@@ -104,7 +104,7 @@ BOOL CSetDlg::OnInitDialog()
 void CSetDlg::OnOK() 
 {
 	// TODO: Add extra validation here
-    //重载，去除enter键关闭对话框	
+	//重载，去除enter键关闭对话框	
 //	CDialog::OnOK();
 }
 

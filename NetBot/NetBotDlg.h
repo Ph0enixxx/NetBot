@@ -147,6 +147,7 @@ protected:
 	afx_msg void OnOnlineVideo();
 	afx_msg void OnBtnSelNum();
 	afx_msg void OnBtnTfiletran();
+	afx_msg void OnOnlineRestart();
 	//}}AFX_MSG
 	afx_msg void    OnSelectComputer(UINT nID);
 	afx_msg LRESULT OnCloseEvent(WPARAM /*wParam*/, LPARAM /*lParam*/);

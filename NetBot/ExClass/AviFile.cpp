@@ -129,7 +129,7 @@ HRESULT CAviFile::InitMovieCreation(int nFrameWidth, int nFrameHeight, int nBits
 	m_AviStreamInfo.dwRate		= m_dwFrameRate;			// Frames Per Second;
 //	m_AviStreamInfo.dwQuality	= 1000;						// Default Quality
 	m_AviStreamInfo.dwSuggestedBufferSize = nMaxWidth*nMaxHeight*4;
-    SetRect(&m_AviStreamInfo.rcFrame, 0, 0, nFrameWidth, nFrameHeight);
+	SetRect(&m_AviStreamInfo.rcFrame, 0, 0, nFrameWidth, nFrameHeight);
 	_tcscpy(m_AviStreamInfo.szName, _T("Video Stream"));
 
 	if(FAILED(AVIFileCreateStream(m_pAviFile,&m_pAviStream,&m_AviStreamInfo)))
@@ -223,7 +223,7 @@ HRESULT CAviFile::AppendFrameUsual(HBITMAP hBitmap)
 		return E_FAIL;
 	}
 
-    return S_OK;
+	return S_OK;
 }
 
 HRESULT CAviFile::AppendDummy(HBITMAP)
@@ -268,7 +268,7 @@ HRESULT	CAviFile::AppendFrameUsual(int nWidth, int nHeight, LPVOID pBits,int nBi
 		return E_FAIL;
 	}
 
-    return S_OK;
+	return S_OK;
 }
 
 HRESULT	CAviFile::AppendDummy(int nWidth, int nHeight, LPVOID pBits,int nBitsPerPixel)

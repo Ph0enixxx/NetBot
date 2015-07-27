@@ -2,7 +2,7 @@
 
 [General Info]
 Version=1
-LastClass=CSetDlg
+LastClass=CNetBotDlg
 LastTemplate=CListCtrl
 NewFileInclude1=#include "stdafx.h"
 NewFileInclude2=#include "NetBot.h"
@@ -22,31 +22,31 @@ Class10=CFileTranDlg
 Class11=CUpdateDlg
 
 ResourceCount=20
-Resource1=IDD_SCREEN_DLG
-Resource2=IDD_DIALOG1
-Resource3=IDD_PROCESS_DLG
-Resource4=IDR_MENU_ONLINE
-Resource5=IDD_DDOS_DLG
-Resource6=IDR_SHELL
-Resource7=IDR_FILE_TOOLBAR
-Resource8=IDD_SET_DLG
-Resource9=IDD_FILETRAN_DLG
-Resource10=IDD_SERVER_DLG
-Resource11=IDD_VIDEO_DLG
-Resource12=IDD_SHELL_DLG
-Resource13=IDD_UPDATE_DLG
+Resource1=IDD_SHELL_DLG
+Resource2=IDD_SET_DLG
+Resource3=IDR_MENU_FILERIGHT
+Resource4=IDD_DIALOG1
+Resource5=IDD_UPDATE_DLG
+Resource6=IDR_MAINTOOLBAR
+Resource7=IDD_SCREEN_DLG
+Resource8=IDD_PROCESS_DLG
+Resource9=IDD_SERVER_DLG
+Resource10=IDD_NETBOT_DIALOG
+Resource11=IDD_FILE_DLG
+Resource12=IDR_MENU_ONLINE
+Resource13=IDR_MENU_MAIN
 Class12=CDDosDlg
-Resource14=IDD_FILE_DLG
-Resource15=IDR_MENU_FILERIGHT
+Resource14=IDR_SHELL
+Resource15=IDD_FILETRAN_DLG
 Class13=CDownloadDlg
 Class14=CUploadDlg
-Resource16=IDR_MENU_FILEVIEW
+Resource16=IDD_VIDEO_DLG
 Class15=CWaitListCtrl
 Class16=CVideoDlg
-Resource17=IDD_NETBOT_DIALOG
+Resource17=IDR_MENU_FILEVIEW
 Class17=start
-Resource18=IDR_MAINTOOLBAR
-Resource19=IDR_MENU_MAIN
+Resource18=IDD_DDOS_DLG
+Resource19=IDR_FILE_TOOLBAR
 Class18=logo
 Class19=CSortListCtrl
 Resource20=IDD_LOGO_DIALOG
@@ -118,7 +118,7 @@ HeaderFile=NetBotDlg.h
 ImplementationFile=NetBotDlg.cpp
 Filter=D
 VirtualFilter=dWC
-LastObject=CNetBotDlg
+LastObject=ID_ONLINE_RESTART
 
 [CLS:CShellDlg]
 Type=0
@@ -185,7 +185,8 @@ Command6=ID_ONLINE_POWEROFF
 Command7=ID_ONLINE_REBOOT
 Command8=ID_ONLINE_LOGOFF
 Command9=ID_ONLINE_UNINSTALL
-CommandCount=9
+Command10=ID_ONLINE_RESTART
+CommandCount=10
 
 [CLS:CDDosDlg]
 Type=0

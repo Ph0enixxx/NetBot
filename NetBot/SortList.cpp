@@ -110,7 +110,7 @@ void CSortListCtrl::OnLvnColumnclick(NMHDR *pNMHDR, LRESULT *pResult)
 	//非常重要，不能遗漏
 	//********************************************************
 	int num = this->GetItemCount();  
-    while(num--)
+	while(num--)
 		this->SetItemData(num, num);  
 	//********************************************************
 

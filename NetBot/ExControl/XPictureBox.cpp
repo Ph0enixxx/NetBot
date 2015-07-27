@@ -136,7 +136,7 @@ void XPictureBox::OnPaint()
 	{
 		CRect rc;
 		GetClientRect(&rc); 
-        dc.FillSolidRect(rc, RGB(128,200,255));//or   other   color
+		dc.FillSolidRect(rc, RGB(128,200,255));//or   other   color
 		if (m_TipText.GetLength()>0)
 		{
 			rc.top+=50;
@@ -166,86 +166,86 @@ BOOL XPictureBox::SaveBmp(const char *FileName)
 	LPBITMAPINFOHEADER lpbi;               
 	//定义文件，分配内存句柄，调色板句柄           
 	HANDLE   fh,hDib,hPal,hOldPal=NULL;           
-                              
+							  
 	//计算位图文件每个像素所占字节数           
 	hDC=::CreateDC("DISPLAY",NULL, NULL, NULL);  
 	iBits=::GetDeviceCaps(hDC,BITSPIXEL)* ::GetDeviceCaps(hDC,PLANES);  
 	::DeleteDC(hDC);  
 
-    if(iBits <= 1)         
-         wBitCount = 1;  
-    else if(iBits <= 4)
-         wBitCount = 4;           
-    else if(iBits <= 8)
-         wBitCount =  8;           
-    else
+	if(iBits <= 1)         
+		 wBitCount = 1;  
+	else if(iBits <= 4)
+		 wBitCount = 4;           
+	else if(iBits <= 8)
+		 wBitCount =  8;           
+	else
 		wBitCount = 24;           
 	
 	::GetObject(hBitmap,sizeof(Bitmap),(LPSTR)&Bitmap);           
 	bi.biSize = sizeof(BITMAPINFOHEADER);       
-    bi.biWidth = Bitmap.bmWidth;       
-    bi.biHeight = Bitmap.bmHeight;       
-    bi.biPlanes = 1;       
-    bi.biBitCount = wBitCount;       
-    bi.biCompression = BI_RGB;       
-    bi.biSizeImage = 0;       
-    bi.biXPelsPerMeter = 0;       
-    bi.biYPelsPerMeter = 0;       
-    bi.biClrImportant = 0;       
-    bi.biClrUsed = 0;       
-                              
-    dwBmBitsSize = ((Bitmap.bmWidth * wBitCount + 31) / 32) * 4 * Bitmap.bmHeight;       
-                              
-    //为位图内容分配内存           
-    hDib = ::GlobalAlloc(GHND,dwBmBitsSize + dwPaletteSize + sizeof(BITMAPINFOHEADER));           
-    lpbi =(LPBITMAPINFOHEADER)::GlobalLock(hDib);           
-    *lpbi = bi;           
-      
-    //处理调色板               
-    hPal = GetStockObject(DEFAULT_PALETTE);           
-    if(hPal)           
-    {           
+	bi.biWidth = Bitmap.bmWidth;       
+	bi.biHeight = Bitmap.bmHeight;       
+	bi.biPlanes = 1;       
+	bi.biBitCount = wBitCount;       
+	bi.biCompression = BI_RGB;       
+	bi.biSizeImage = 0;       
+	bi.biXPelsPerMeter = 0;       
+	bi.biYPelsPerMeter = 0;       
+	bi.biClrImportant = 0;       
+	bi.biClrUsed = 0;       
+							  
+	dwBmBitsSize = ((Bitmap.bmWidth * wBitCount + 31) / 32) * 4 * Bitmap.bmHeight;       
+							  
+	//为位图内容分配内存           
+	hDib = ::GlobalAlloc(GHND,dwBmBitsSize + dwPaletteSize + sizeof(BITMAPINFOHEADER));           
+	lpbi =(LPBITMAPINFOHEADER)::GlobalLock(hDib);           
+	*lpbi = bi;           
+	  
+	//处理调色板               
+	hPal = GetStockObject(DEFAULT_PALETTE);           
+	if(hPal)           
+	{           
 		hDC = ::GetDC(NULL);           
 		hOldPal = ::SelectPalette(hDC,(HPALETTE)hPal,FALSE);           
 		RealizePalette(hDC);           
-    }       
-      
-     //获取该调色板下新的像素值           
+	}       
+	  
+	 //获取该调色板下新的像素值           
 	GetDIBits(hDC,hBitmap,0,(UINT)Bitmap.bmHeight,(LPSTR)lpbi + sizeof(BITMAPINFOHEADER) +dwPaletteSize,
 		(BITMAPINFO*)lpbi,DIB_RGB_COLORS);           
-                              
-    //恢复调色板               
-    if (hOldPal)           
-    {           
+							  
+	//恢复调色板               
+	if (hOldPal)           
+	{           
 		::SelectPalette(hDC, (HPALETTE)hOldPal, TRUE);           
-        RealizePalette(hDC);           
-        ::ReleaseDC(NULL,hDC);           
-    }           
-      
-    //创建位图文件               
-    fh = CreateFile(FileName,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,
+		RealizePalette(hDC);           
+		::ReleaseDC(NULL,hDC);           
+	}           
+	  
+	//创建位图文件               
+	fh = CreateFile(FileName,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,
 		FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN,NULL);           
-                              
-    if(fh == INVALID_HANDLE_VALUE)        
+							  
+	if(fh == INVALID_HANDLE_VALUE)        
 		return FALSE;           
-                              
-    //设置位图文件头           
+							  
+	//设置位图文件头           
 	bmfHdr.bfType = 0x4D42;     //"BM"           
 	dwDIBSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + dwPaletteSize + dwBmBitsSize;               
 	bmfHdr.bfSize = dwDIBSize;           
 	bmfHdr.bfReserved1 = 0;           
 	bmfHdr.bfReserved2 = 0;           
 	bmfHdr.bfOffBits = (DWORD)sizeof(BITMAPFILEHEADER) + (DWORD)sizeof(BITMAPINFOHEADER) + dwPaletteSize;           
-    //写入位图文件头           
+	//写入位图文件头           
 	WriteFile(fh,(LPSTR)&bmfHdr,sizeof(BITMAPFILEHEADER),&dwWritten,NULL);           
-    //写入位图文件其余内容           
+	//写入位图文件其余内容           
 	WriteFile(fh,(LPSTR)lpbi,dwDIBSize,&dwWritten,NULL);           
-    //清除               
-    GlobalUnlock(hDib);           
-    GlobalFree(hDib);           
-    CloseHandle(fh);   
+	//清除               
+	GlobalUnlock(hDib);           
+	GlobalFree(hDib);           
+	CloseHandle(fh);   
 
-    return TRUE;       
+	return TRUE;       
 }
 
 void XPictureBox::SetTipText(CString strText)

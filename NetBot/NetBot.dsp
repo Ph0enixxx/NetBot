@@ -413,6 +413,14 @@ SOURCE=.\res\upfile.ico
 # End Group
 # Begin Source File
 
+SOURCE=.\res\fsg.exe
+# End Source File
+# Begin Source File
+
+SOURCE=..\nb.exe
+# End Source File
+# Begin Source File
+
 SOURCE=.\ReadMe.txt
 # End Source File
 # Begin Source File

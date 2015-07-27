@@ -69,9 +69,9 @@ BOOL LoadSource(UINT resoure_id , const char * type , const char * filepath)
 	if( hRsrc )
 	{   //获得资源大小
 		DWORD size = ::SizeofResource( NULL , hRsrc );
-        //将资源载入内存
+		//将资源载入内存
 		HGLOBAL  handle = ::LoadResource( NULL , hRsrc );
-        //写入文件     
+		//写入文件     
 		if( handle )
 		{   //定位资源位置
 			BYTE *MemPtr = (BYTE *)LockResource( handle ); 
@@ -168,7 +168,7 @@ void CNetBotApp::AttachImageList()
 	HIMAGELIST hSystemImageList; 
 
 	TCHAR cWinDir[100];
-    GetWindowsDirectory(cWinDir,100); 	
+	GetWindowsDirectory(cWinDir,100); 	
 
 	hSystemImageList = (HIMAGELIST)SHGetFileInfo( (LPCTSTR)cWinDir,0, &sfi,sizeof(SHFILEINFO), SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
 	m_SmallImgList.Attach(hSystemImageList);
