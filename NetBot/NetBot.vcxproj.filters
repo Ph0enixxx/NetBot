@@ -69,9 +69,6 @@
     <ClCompile Include="ExControl\SplashScreenEx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="start.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ExControl\StatLink.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -155,9 +152,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ExControl\SplashScreenEx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="start.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ExControl\StatLink.h">
@@ -275,13 +269,7 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <Xml Include="res\xp.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="zlib.lib" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="res\outlook\default1.bin">
@@ -293,13 +281,6 @@
     <CustomBuild Include="res\outlook\skin1.bin">
       <Filter>Resource Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="res\fsg.exe" />
-    <CustomBuild Include="res\nb.exe" />
-    <CustomBuild Include="..\svchost\nb.exe" />
     <CustomBuild Include="res\SEARCH.AVI" />
-    <CustomBuild Include="res\service.exe" />
-    <CustomBuild Include="res\Skin.ssk" />
-    <CustomBuild Include="res\SkinPPWTL.dll" />
-    <CustomBuild Include="res\upx.exe" />
   </ItemGroup>
 </Project>

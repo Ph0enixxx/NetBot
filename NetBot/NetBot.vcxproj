@@ -11,13 +11,14 @@
     <SccLocalPath />
     <Keyword>MFCProj</Keyword>
     <ProjectGuid>{F44D3B0A-BC73-47C5-82A2-AA8D98E257CE}</ProjectGuid>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
     <UseOfMfc>Static</UseOfMfc>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -28,8 +29,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>.\Release13\</OutDir>
-    <IntDir>.\Release13\</IntDir>
+    <OutDir>Release\vs</OutDir>
+    <IntDir>Release\vs</IntDir>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -41,14 +42,16 @@
       <Optimization>MaxSpeed</Optimization>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS	NetBot	E:\VC++\NBVip5.5\NetBot\SortList.cpp	80;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>.\Release\</AssemblerListingLocation>
       <BrowseInformation>true</BrowseInformation>
-      <PrecompiledHeaderOutputFile>.\Release\NetBot.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>Release\vs\NetBot.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <ObjectFileName>.\Release\</ObjectFileName>
       <ProgramDataBaseFileName>.\Release\</ProgramDataBaseFileName>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Midl>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -69,7 +72,10 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <SubSystem>Windows</SubSystem>
       <IgnoreSpecificDefaultLibraries>MSVCRT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <OutputFile>NetBot_Cn.exe</OutputFile>
+      <OutputFile>..\\NetBot_Cn.exe</OutputFile>
+      <GenerateDebugInformation>No</GenerateDebugInformation>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -94,7 +100,6 @@
     <ClCompile Include="SetDlg.cpp" />
     <ClCompile Include="ShellDlg.cpp" />
     <ClCompile Include="SortList.cpp" />
-    <ClCompile Include="start.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stdafx.h</PrecompiledHeaderFile>
@@ -130,7 +135,6 @@
     <ClInclude Include="SetDlg.h" />
     <ClInclude Include="ShellDlg.h" />
     <ClInclude Include="SortList.h" />
-    <ClInclude Include="start.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="UpdateDlg.h" />
     <ClInclude Include="VideoDlg.h" />
@@ -168,26 +172,13 @@
     <Image Include="res\upfile.ico" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\svchost\nb.exe" />
-    <CustomBuild Include="res\fsg.exe" />
-    <CustomBuild Include="res\nb.exe" />
     <CustomBuild Include="res\NetBot.rc2" />
     <CustomBuild Include="res\outlook\default1.bin" />
     <CustomBuild Include="res\outlook\skin1.bin" />
     <CustomBuild Include="res\SEARCH.AVI" />
-    <CustomBuild Include="res\service.exe" />
-    <CustomBuild Include="res\Skin.ssk" />
-    <CustomBuild Include="res\SkinPPWTL.dll" />
-    <CustomBuild Include="res\upx.exe" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="res\xp.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="zlib.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

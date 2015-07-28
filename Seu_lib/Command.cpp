@@ -4,16 +4,16 @@
 //开启TCP保活机制
 BOOL TurnonKeepAlive(SOCKET s, UINT nKeepAliveSec)
 {
-	if(nKeepAliveSec < 1) 
-	   return TRUE;
+	if (nKeepAliveSec < 1)
+		return TRUE;
 
 	BOOL bSetKeepAlive = TRUE;
-	if(::setsockopt(s,SOL_SOCKET, SO_KEEPALIVE, (const char*)&bSetKeepAlive, sizeof(BOOL)) != 0)
-	   return FALSE;
+	if (::setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, (const char*)&bSetKeepAlive, sizeof(BOOL)) != 0)
+		return FALSE;
 
 	DWORD dwBytes;
-	struct tcp_keepalive Settings= {0};
-	struct tcp_keepalive Retvals= {0};
+	struct tcp_keepalive Settings = { 0 };
+	struct tcp_keepalive Retvals = { 0 };
 	Settings.onoff = 1;
 	Settings.keepaliveinterval = 8000; //回应超时间隔，如果出现超时，Windows将重新发送检测包，直到5次全部失败。
 	Settings.keepalivetime = nKeepAliveSec * 1000; //开始首次KeepAlive探测前的TCP空闭时间
@@ -28,24 +28,24 @@ BOOL TurnonKeepAlive(SOCKET s, UINT nKeepAliveSec)
 //发送数据
 BOOL SendData(SOCKET s, char *data, int len)
 {
-	char* pData   = data;
-	int iHasSend  = 0;
+	char* pData = data;
+	int iHasSend = 0;
 	int iLeftSend = len;
-	int iRet      = 0;
+	int iRet = 0;
 
-	if(len <= 0) 
+	if (len <= 0)
 		return TRUE;
 
-	while(1)
+	while (1)
 	{
 		iRet = send(s, pData, iLeftSend, 0);
-		if(iRet == 0 || iRet == SOCKET_ERROR)
+		if (iRet == 0 || iRet == SOCKET_ERROR)
 			return FALSE;
 
-		iHasSend  += iRet;
-		pData     += iRet;
+		iHasSend += iRet;
+		pData += iRet;
 		iLeftSend -= iRet;
-		if(iHasSend >= len) 
+		if (iHasSend >= len)
 			break;
 	}
 
@@ -55,23 +55,23 @@ BOOL SendData(SOCKET s, char *data, int len)
 //接收数据
 BOOL RecvData(SOCKET s, char *data, int len)
 {
-	char * pData  = data;
-	int iHasRecv  = 0;
+	char * pData = data;
+	int iHasRecv = 0;
 	int iLeftRecv = len;
-	int iRet      = 0;
+	int iRet = 0;
 
-	if(len <= 0) 
+	if (len <= 0)
 		return TRUE;
-	while(1)
+	while (1)
 	{
 		iRet = recv(s, pData, iLeftRecv, 0);
-		if(iRet == 0 || iRet == SOCKET_ERROR)
+		if (iRet == 0 || iRet == SOCKET_ERROR)
 			return FALSE;
 
-		iHasRecv  += iRet;
-		pData     += iRet;
+		iHasRecv += iRet;
+		pData += iRet;
 		iLeftRecv -= iRet;
-		if(iHasRecv >= len) 
+		if (iHasRecv >= len)
 			break;
 	}
 
@@ -81,15 +81,15 @@ BOOL RecvData(SOCKET s, char *data, int len)
 BOOL SendMsg(SOCKET s, char const *pBuf, LPMsgHead lpMsgHead)
 {
 	//发送消息头
-	if(!SendData(s,(char*)lpMsgHead, sizeof(MsgHead)))
+	if (!SendData(s, (char*)lpMsgHead, sizeof(MsgHead)))
 		return FALSE;
 
 	//查看数据长度
-	if(lpMsgHead->dwSize <= 0) 
+	if (lpMsgHead->dwSize <= 0)
 		return TRUE;
 
 	//发送数据
-	if(!SendData(s, (char*)pBuf, lpMsgHead->dwSize)) 
+	if (!SendData(s, (char*)pBuf, lpMsgHead->dwSize))
 		return FALSE;
 
 	return TRUE;
@@ -98,13 +98,13 @@ BOOL SendMsg(SOCKET s, char const *pBuf, LPMsgHead lpMsgHead)
 BOOL RecvMsg(SOCKET s, char *pBuf, LPMsgHead lpMsgHead)
 {
 	//接收消息头
-	if(!RecvData(s, (char*)lpMsgHead, sizeof(MsgHead)))
+	if (!RecvData(s, (char*)lpMsgHead, sizeof(MsgHead)))
 		return FALSE;
 
-	if(lpMsgHead->dwSize <= 0) 
+	if (lpMsgHead->dwSize <= 0)
 		return TRUE;
 
-	if(!RecvData(s, pBuf, lpMsgHead->dwSize))
+	if (!RecvData(s, pBuf, lpMsgHead->dwSize))
 		return FALSE;
 
 	return TRUE;
