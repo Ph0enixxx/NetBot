@@ -15,8 +15,8 @@ static char THIS_FILE[] = __FILE__;
 
 CCmdEdit::CCmdEdit()
 {
-	m_clrFore=RGB(255,255,255);//字白色
-	m_clrBack=RGB(0,0,0);//背景黑色
+	m_clrFore = RGB(255, 255, 255);//字白色
+	m_clrBack = RGB(0, 0, 0);//背景黑色
 	m_brush.CreateSolidBrush(m_clrBack);
 }
 
@@ -34,14 +34,12 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CCmdEdit message handlers
 
-HBRUSH CCmdEdit::CtlColor(CDC* pDC, UINT nCtlColor) 
+HBRUSH CCmdEdit::CtlColor(CDC* pDC, UINT nCtlColor)
 {
 	// TODO: Change any attributes of the DC here
 	pDC->SetTextColor(m_clrFore);
 	pDC->SetBkColor(m_clrBack);
 	return (HBRUSH)m_brush.GetSafeHandle();
-	// TODO: Return a non-NULL brush if the parent's handler should not be called
-	return NULL;
 }
 
 void CCmdEdit::ClearEdit()
@@ -59,5 +57,5 @@ void CCmdEdit::AddText(LPCTSTR szText)
 
 	LineScroll(GetLineCount());//滚动到位置
 	SetFocus();
-	SetSel(strContext.GetLength(), -1);//光标位置？	
+	SetSel(strContext.GetLength(), -1);//光标位置？
 }

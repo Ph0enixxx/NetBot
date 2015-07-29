@@ -1,13 +1,12 @@
-#include "NetBot.h"
 #include "StdAfx.h"
+#include "NetBot.h"
 #include "SortListCtrl.h"
 
 #include <stdlib.h>
-#include <math.h>
 
 CSortListCtrl::CSortListCtrl(void)
-: m_bAsc(false)
-, m_nSortedCol(0)
+	: m_bAsc(false)
+	, m_nSortedCol(0)
 {
 
 }
@@ -23,7 +22,7 @@ END_MESSAGE_MAP()
 int CALLBACK ListCompare(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
 	CSortListCtrl* pList = (CSortListCtrl*)lParamSort;
-	int nItem1,nItem2;
+	int nItem1, nItem2;
 
 	LVFINDINFO FindInfo;
 	FindInfo.flags = LVFI_PARAM;
@@ -32,9 +31,9 @@ int CALLBACK ListCompare(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 	FindInfo.lParam = lParam2;
 	nItem2 = pList->FindItem(&FindInfo, -1);
 
-	if((nItem1 == -1) || (nItem2 == -1)) 
-	{ 
-		return 0; 
+	if ((nItem1 == -1) || (nItem2 == -1))
+	{
+		return 0;
 	}
 
 	CString str1, str2;
@@ -43,61 +42,58 @@ int CALLBACK ListCompare(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 
 	HDITEM headerItem;
 	headerItem.mask = HDI_LPARAM;
-	CHeaderCtrl* pHeaderCtrl = pList->GetHeaderCtrl( );
+	CHeaderCtrl* pHeaderCtrl = pList->GetHeaderCtrl();
 	pHeaderCtrl->GetItem(pList->m_nSortedCol, &headerItem);
 	UINT nType = (UINT)(headerItem.lParam);
 
 	int iCompRes = 0;
-	switch(nType)
+	switch (nType)
 	{
 	case CSortListCtrl::DATA_TYPE::DOUBLE_TYPE:		//thoughout
 	case CSortListCtrl::DATA_TYPE::INT_TYPE:
-		{
-			int i1,i2;
-			char str[256] = {0};
+	{
+		int i1, i2;
+		char str[256] = { 0 };
 
-			strcpy(str,str1);
+		lstrcpy(str, str1);
 
-			i1 = atoi(str);
-			strcpy(str,str2);
+		i1 = atoi(str);
+		lstrcpy(str, str2);
 
-			i2 = atoi(str);
+		i2 = atoi(str);
 
-			if( i1 > i2) 
-				iCompRes = 1; 
-			else if( i1 == i2 ) 
-				iCompRes = 0; 
-			else 
-				iCompRes = -1;
-		}
-		break;
+		if (i1 > i2)
+			iCompRes = 1;
+		else if (i1 == i2)
+			iCompRes = 0;
+		else
+			iCompRes = -1;
+	}
+	break;
 
 	case CSortListCtrl::DATA_TYPE::STRING_TYPE:		//throughout
 	default:
-		{
-			char strf[256] = {0},strn[256] = {0};
-			strcpy(strf,str1);
-			strcpy(strn,str2);
-			
-			iCompRes = strcmp(strf,strn);
-		}
-		break;
+	{
+		char strf[256] = { 0 }, strn[256] = { 0 };
+		lstrcpy(strf, str1);
+		lstrcpy(strn, str2);
+
+		iCompRes = strcmp(strf, strn);
+	}
+	break;
 	}
 
-	if(pList->m_bAsc)
+	if (pList->m_bAsc)
 		return iCompRes;
 	else
 		return iCompRes * -1;
-
-	return 0;
 }
 
 void CSortListCtrl::OnLvnColumnclick(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
 
-	// TODO: 在此添加控件通知处理程序代码
-	if(pNMLV->iSubItem == m_nSortedCol)
+	if (pNMLV->iSubItem == m_nSortedCol)
 	{
 		m_bAsc = !m_bAsc;
 	}
@@ -109,15 +105,14 @@ void CSortListCtrl::OnLvnColumnclick(NMHDR *pNMHDR, LRESULT *pResult)
 
 	//非常重要，不能遗漏
 	//********************************************************
-	int num = this->GetItemCount();  
-	while(num--)
-		this->SetItemData(num, num);  
+	int num = this->GetItemCount();
+	while (num--)
+		this->SetItemData(num, num);
 	//********************************************************
 
-	SortItems(ListCompare, (DWORD)this); 
+	SortItems(ListCompare, (DWORD)this);
 
 	UpdateData(FALSE);
 
 	*pResult = 0;
 }
-

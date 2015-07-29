@@ -48,3 +48,5 @@ $tf*/
 /VTCP
 *.exp
 svchostDll
+*.iobj
+*.ipdb

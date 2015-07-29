@@ -70,13 +70,13 @@ END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CUpdateDlg message handlers
-BOOL CUpdateDlg::OnInitDialog() 
+BOOL CUpdateDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
 	// Set the small icon for this dialog
-	SetIcon(AfxGetApp()->LoadIcon(IDI_OL_UPDATE), FALSE);	
-	CenterWindow();		
+	SetIcon(AfxGetApp()->LoadIcon(IDI_OL_UPDATE), FALSE);
+	CenterWindow();
 	// TODO: Add extra initialization here
 	//---------------
 	ReadIniFile();
@@ -85,96 +85,96 @@ BOOL CUpdateDlg::OnInitDialog()
 
 	//获得IP--------------------------------
 	WSADATA wsaData;
-	WSAStartup(MAKEWORD(1,1),&wsaData);
+	WSAStartup(MAKEWORD(1, 1), &wsaData);
 	char szhostname[128];
-	
-	if( gethostname(szhostname, 128) == 0 )
+
+	if (gethostname(szhostname, 128) == 0)
 	{
-		
+
 		struct hostent * phost;
-		int i,j,h_length=4;
+		int i, j, h_length = 4;
 		phost = gethostbyname(szhostname);
-		for( i = 0; phost!= NULL && phost->h_addr_list[i]!= NULL; i++) 
+		for (i = 0; phost != NULL && phost->h_addr_list[i] != NULL; i++)
 		{
 			CString str;
-			for( j = 0; j<h_length; j++ ) 
+			for (j = 0; j < h_length; j++)
 			{
-				CString addr;			
-				if( j > 0 )
-					str += ".";			
+				CString addr;
+				if (j > 0)
+					str += ".";
 				addr.Format("%u", (unsigned int)((unsigned char*)phost->h_addr_list[i])[j]);
 				str += addr;
 			}
 			m_Combo_DnsIP.AddString(str);
-			m_Combo_FtpIP.AddString(str);	
+			m_Combo_FtpIP.AddString(str);
 		}
 		m_Combo_DnsIP.SetCurSel(0);
 		m_Combo_FtpIP.SetCurSel(0);
 	}
 
-//   WSACleanup();
-	//---------------------------
+	//   WSACleanup();
+		//---------------------------
 	GetDlgItem(IDC_COMBO_FTPPORT)->SetWindowText("1986");
-	UpdateData(FALSE);	
-	return TRUE; 
+	UpdateData(FALSE);
+	return TRUE;
 }
 
-void CUpdateDlg::OnBtnFtpupdate() 
+void CUpdateDlg::OnBtnFtpupdate()
 {
 	// TODO: Add your control notification handler code here
 	UpdateData(TRUE);
 
 	//打包本地IP及端口信息为文件------------------
-	CString ip,str;
+	CString ip, str;
 	GetDlgItem(IDC_COMBO_FTPIP)->GetWindowText(ip);
 	GetDlgItem(IDC_COMBO_FTPPORT)->GetWindowText(str);
-	ip="["+ip+":"+str+"]";
+	ip = "[" + ip + ":" + str + "]";
 	HANDLE hFile;
 	hFile = CreateFile("ip.txt", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	DWORD numWrite;
-	WriteFile (hFile,ip,ip.GetLength(), &numWrite, NULL);	
+	WriteFile(hFile, ip, ip.GetLength(), &numWrite, NULL);
 	CloseHandle(hFile);
 
 	//保存配置信息
-	str.Format("%d",m_FtpPort);
-	m_Ini.SetKeyValue("FTP Setting","FtpAddress",m_FtpIP);
-	m_Ini.SetKeyValue("FTP Setting","FtpPort",str);
-	m_Ini.SetKeyValue("FTP Setting","FtpUsername",m_FtpUser);
-	m_Ini.SetKeyValue("FTP Setting","FtpPassword",m_FtpPass);
-	m_Ini.SetKeyValue("FTP Setting","FilePath",m_FtpUrl);
+	str.Format("%d", m_FtpPort);
+	m_Ini.SetKeyValue("FTP Setting", "FtpAddress", m_FtpIP);
+	m_Ini.SetKeyValue("FTP Setting", "FtpPort", str);
+	m_Ini.SetKeyValue("FTP Setting", "FtpUsername", m_FtpUser);
+	m_Ini.SetKeyValue("FTP Setting", "FtpPassword", m_FtpPass);
+	m_Ini.SetKeyValue("FTP Setting", "FilePath", m_FtpUrl);
 
-	
+
 	CreateThread(NULL,
 		0,
 		(LPTHREAD_START_ROUTINE)FtpUpdateThread,
 		this,
 		0,
-		NULL);	
+		NULL);
 }
 
-void CUpdateDlg::OnBtnDnsupdate() 
+void CUpdateDlg::OnBtnDnsupdate()
 {
 	// TODO: Add your control notification handler code here
 	UpdateData();
 
-	CString strUrl,strTemp;
+	CString strUrl, strTemp;
 	GetDlgItem(IDC_COMBO_DNSIP)->GetWindowText(strTemp);
 	strUrl = "http://";
 	strUrl += m_DnsUser;
-	strUrl +=":";
-	strUrl +=m_DnsPass;
-	strUrl +="@members.3322.org/dyndns/update?system=dyndns&hostname=";
-	strUrl +=m_DnsDomain;
-	strUrl +="&myip=";
-	strUrl +=strTemp;
-	strUrl +="&wildcard=OFF";
+	strUrl += ":";
+	strUrl += m_DnsPass;
+	strUrl += "@members.3322.org/dyndns/update?system=dyndns&hostname=";
+	strUrl += m_DnsDomain;
+	strUrl += "&myip=";
+	strUrl += strTemp;
+	strUrl += "&wildcard=OFF";
 
-	CInternetSession m_Session(NULL,0);
-	CHttpFile* pHttpFile=NULL;
-	pHttpFile=(CHttpFile*) m_Session.OpenURL(strUrl);
-	if(pHttpFile == NULL)
+	CInternetSession m_Session(NULL, 0);
+	CHttpFile* pHttpFile = NULL;
+	pHttpFile = (CHttpFile*)m_Session.OpenURL(strUrl);
+	if (pHttpFile == NULL)
 	{
-		MessageBox("Update Error!","3322 Domain");
+		MessageBox("Update Error!", "3322 Domain");
 		pHttpFile->Close();
 		m_Session.Close();
 		return;
@@ -184,12 +184,12 @@ void CUpdateDlg::OnBtnDnsupdate()
 	pHttpFile->Close();
 	m_Session.Close();
 
-	MessageBox(strTemp,"3322域名");	
+	MessageBox(strTemp, "3322域名");
 
-	//保存配置信息	
-	m_Ini.SetKeyValue("DNS Setting","DnsUser",m_DnsUser);
-	m_Ini.SetKeyValue("DNS Setting","DnsPass",m_DnsPass);
-	m_Ini.SetKeyValue("DNS Setting","DnsDomain",m_DnsDomain);	
+	//保存配置信息
+	m_Ini.SetKeyValue("DNS Setting", "DnsUser", m_DnsUser);
+	m_Ini.SetKeyValue("DNS Setting", "DnsPass", m_DnsPass);
+	m_Ini.SetKeyValue("DNS Setting", "DnsDomain", m_DnsDomain);
 }
 
 void CUpdateDlg::ReadIniFile()
@@ -197,20 +197,20 @@ void CUpdateDlg::ReadIniFile()
 	char Path[255];
 	GetCurrentDirectory(255, Path);
 	CString path;
-	path.Format("%s\\NetBot.ini",Path);
-	if(m_Ini.SetPath(path))
+	path.Format("%s\\NetBot.ini", Path);
+	if (m_Ini.SetPath(path))
 	{
 		CString temp;
-		m_FtpIP =m_Ini.GetKeyValue("FTP Setting","FtpAddress");
-		temp=m_Ini.GetKeyValue("FTP Setting","FtpPort");
-		m_FtpPort=atoi(temp);
-		m_FtpUser=m_Ini.GetKeyValue("FTP Setting","FtpUsername");
-		m_FtpPass=m_Ini.GetKeyValue("FTP Setting","FtpPassword");
-		m_FtpUrl=m_Ini.GetKeyValue("FTP Setting","FilePath");
-	
-		m_DnsUser =m_Ini.GetKeyValue("DNS Setting","DnsUser");
-		m_DnsPass =m_Ini.GetKeyValue("DNS Setting","DnsPass");
-		m_DnsDomain =m_Ini.GetKeyValue("DNS Setting","DnsDomain"); 
+		m_FtpIP = m_Ini.GetKeyValue("FTP Setting", "FtpAddress");
+		temp = m_Ini.GetKeyValue("FTP Setting", "FtpPort");
+		m_FtpPort = atoi(temp);
+		m_FtpUser = m_Ini.GetKeyValue("FTP Setting", "FtpUsername");
+		m_FtpPass = m_Ini.GetKeyValue("FTP Setting", "FtpPassword");
+		m_FtpUrl = m_Ini.GetKeyValue("FTP Setting", "FilePath");
+
+		m_DnsUser = m_Ini.GetKeyValue("DNS Setting", "DnsUser");
+		m_DnsPass = m_Ini.GetKeyValue("DNS Setting", "DnsPass");
+		m_DnsDomain = m_Ini.GetKeyValue("DNS Setting", "DnsDomain");
 	}
 }
 
@@ -219,32 +219,32 @@ DWORD CUpdateDlg::FtpUpdate()
 	//FTP上传文件---------------------------------
 	CInternetSession *seu;
 	CFtpConnection *pFTP;
-	   //新建对话
-	seu=new CInternetSession(AfxGetAppName(),1,PRE_CONFIG_INTERNET_ACCESS);
-	try 
-	{ 
+	//新建对话
+	seu = new CInternetSession(AfxGetAppName(), 1, PRE_CONFIG_INTERNET_ACCESS);
+	try
+	{
 		//新建连接对象
-		pFTP=seu->GetFtpConnection(m_FtpIP,m_FtpUser,m_FtpPass,m_FtpPort,FALSE); 
-	} 
-	catch(CInternetException *pEx) 
+		pFTP = seu->GetFtpConnection(m_FtpIP, m_FtpUser, m_FtpPass, m_FtpPort, FALSE);
+	}
+	catch (CInternetException *pEx)
 	{
 		//获取错误
 		TCHAR szError[1024];
-		if(pEx->GetErrorMessage(szError,1024))
-			MessageBox(szError,"FTP更新");
-		else  
-			MessageBox("There was an exception","FTP更新");
+		if (pEx->GetErrorMessage(szError, 1024))
+			MessageBox(szError, "FTP更新");
+		else
+			MessageBox("There was an exception", "FTP更新");
 		pEx->Delete();
-		pFTP=NULL;
+
 		return 0;
 	}
-	   //上传
-	if(pFTP->PutFile("ip.txt",m_FtpUrl))
-		MessageBox("更新IP成功!","FTP更新");
+	//上传
+	if (pFTP->PutFile("ip.txt", m_FtpUrl))
+		MessageBox("更新IP成功!", "FTP更新");
 	else
-		MessageBox("更新IP失败","FTP更新");
+		MessageBox("更新IP失败", "FTP更新");
 
-	pFTP->Close();	
+	pFTP->Close();
 
 	return 0;
 }

@@ -12,32 +12,31 @@
 
 #define vipid 405
 
-#undef WINVER    
-#define WINVER 0X502
-
-#define _WIN32_WINNT 0x0502
+#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 #define VC_EXTRALEAN		// Exclude rarely-used stuff from Windows headers
+#define WINVER 0X502
+#define _WIN32_WINNT 0x0502
 
 #include <afxwin.h>         // MFC core and standard components
-
-#undef   _WIN32_WINNT
-
 #include <afxext.h>         // MFC extensions
 #include <afxdisp.h>        // MFC Automation classes
 #include <afxdtctl.h>		// MFC support for Internet Explorer 4 Common Controls
-#ifndef _AFX_NO_AFXCMN_SUPPORT
-#include <afxcmn.h>			// MFC support for Windows Common Controls
-#endif // _AFX_NO_AFXCMN_SUPPORT
 
-#include "SkinH.h"
-#pragma comment(lib, "SkinH.lib")
+#ifndef _AFX_NO_AFXCMN_SUPPORT
+	#include <afxcmn.h>			// MFC support for Windows Common Controls
+#endif // _AFX_NO_AFXCMN_SUPPORT
 
 #define DE
 #include "..\\..\\debugh.h"
 
+#include "SkinH.h"
+#pragma comment(lib, "SkinH.lib")
+
 #include "./ExClass/ThreadTemplate.h"
+
 #pragma warning(disable : 4786)
 #pragma warning(disable : 4200)
+
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 

