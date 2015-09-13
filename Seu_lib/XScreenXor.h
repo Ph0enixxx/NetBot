@@ -15,8 +15,9 @@ public:
 	XScreenXor();
 	virtual ~XScreenXor();
 
-public:
-	//截取端用的函数
+	int MAXWIDTH;
+	float Radio;
+
 	void  SetColor(int iColor);
 	void  InitGlobalVar();
 
@@ -55,9 +56,6 @@ private:
 
 	int DestWidth;
 	int DestHeigth;
-
-	int MAXWIDTH;
-	float Radio;
 
 	int m_nColor;     //图像颜色位数
 

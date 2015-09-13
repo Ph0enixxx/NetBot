@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
-// Used by NetBot.rc
+// Microsoft Visual C++ 生成的包含文件。
+// 供 NetBot.rc 使用
 //
 #define IDD_SHELL_DLG                   101
 #define IDD_NETBOT_DIALOG               102
@@ -181,8 +181,10 @@
 #define IDC_USERNAME                    1053
 #define IDC_SPIN_NUM4                   1053
 #define IDC_BTN_STOP_CUSTOM             1053
+#define IDC_RADIO6                      1053
 #define IDC_USERPASS                    1054
 #define IDC_BTN_ATTACK4                 1054
+#define IDC_RADIO7                      1054
 #define IDC_CREATE                      1055
 #define IDC_BTN_STOP4                   1055
 #define IDC_OK                          1055
@@ -248,6 +250,7 @@
 #define IDC_PROGRESS_SCREEN             1088
 #define IDC_CHECK_SKIN                  1088
 #define IDC_BTN_START                   1089
+#define IDC_RADIO_COLOR5                1090
 #define IDC_FILETREE                    1093
 #define IDC_BTN_TEST                    1094
 #define IDC_PROGRESS_VIDEO              1095

@@ -16,7 +16,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
     <UseOfMfc>Static</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -183,7 +183,19 @@
   <ItemGroup>
     <Xml Include="res\xp.xml" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\nb.exe" />
+    <None Include="res\fsg.exe" />
+    <None Include="res\Skin.ssk" />
+    <None Include="res\SkinPPWTL.dll" />
+    <None Include="res\upx.exe" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="NetBot.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>

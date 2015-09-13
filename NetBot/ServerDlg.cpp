@@ -360,7 +360,7 @@ void CServerDlg::OnOk()
 	
 	GetDlgItem(IDC_CREATE)->EnableWindow(TRUE); 	
 
-	UpdateData(FALSE);	
+	UpdateData(FALSE);
 	m_Ini.SetKeyValue("Server Setting", "IPFile", m_Url);
 
 	CDialog::OnOK();

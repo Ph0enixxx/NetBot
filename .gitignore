@@ -50,3 +50,6 @@ $tf*/
 svchostDll
 *.iobj
 *.ipdb
+*.sdf
+*.ipch
+/ipch

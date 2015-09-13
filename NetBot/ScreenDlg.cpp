@@ -103,8 +103,8 @@ BOOL CScreenDlg::OnInitDialog()
 	((CButton*)GetDlgItem(IDC_RADIO_COLOR1))->SetCheck(1);
 	GetDlgItem(IDC_BTN_SAVEBMP)->EnableWindow(FALSE);
 
-	m_ctl.SetCheck(1);
-	m_bCtrl = TRUE;
+	//m_ctl.SetCheck(1);
+	//m_bCtrl = TRUE;
 
 	return TRUE;
 }

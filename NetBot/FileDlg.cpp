@@ -22,7 +22,7 @@ CFileDlg::CFileDlg(CWnd* pParent /*=NULL*/) : CDialog(CFileDlg::IDD, pParent)
 	bCopySel = FALSE;
 	m_ConnSocket = INVALID_SOCKET;
 	m_ViewStyle = LVS_REPORT;
-	m_Buffer = new char[1536 * 1024]; //数据交换区 1.5MB
+	m_Buffer = new char[2048 * 1024]; //数据交换区 2MB
 	m_hWorkThread = NULL;
 }
 

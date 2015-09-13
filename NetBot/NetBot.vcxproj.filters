@@ -283,4 +283,11 @@
     </CustomBuild>
     <CustomBuild Include="res\SEARCH.AVI" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="res\Skin.ssk" />
+    <None Include="res\fsg.exe" />
+    <None Include="res\upx.exe" />
+    <None Include="..\nb.exe" />
+    <None Include="res\SkinPPWTL.dll" />
+  </ItemGroup>
 </Project>

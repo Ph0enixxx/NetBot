@@ -283,13 +283,13 @@ BOOL CNetBotDlg::OnInitDialog()
 	////////////////////////////////////////////////////////////////////////
 	//create online list
 	ListView_SetExtendedListViewStyle(m_OnLineList.m_hWnd, LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
-	m_OnLineList.InsertColumn(0, "IP地址/端口", LVCFMT_LEFT, 200);
-	m_OnLineList.InsertColumn(1, "计算机名", LVCFMT_LEFT, 130);
-	m_OnLineList.InsertColumn(2, "所在地域", LVCFMT_LEFT, 140);
-	m_OnLineList.InsertColumn(3, "操作系统", LVCFMT_LEFT, 240);
-	m_OnLineList.InsertColumn(4, "内存", LVCFMT_LEFT, 70);
-	m_OnLineList.InsertColumn(5, "版本", LVCFMT_LEFT, 100);
-	m_OnLineList.InsertColumn(6, "状态", LVCFMT_LEFT, 70);
+	m_OnLineList.InsertColumn(0, "IP地址/端口", LVCFMT_LEFT, 160);
+	m_OnLineList.InsertColumn(1, "计算机名", LVCFMT_LEFT, 140);
+	m_OnLineList.InsertColumn(2, "所在地域", LVCFMT_LEFT, 160);
+	m_OnLineList.InsertColumn(3, "操作系统", LVCFMT_LEFT, 220);
+	m_OnLineList.InsertColumn(4, "内存", LVCFMT_LEFT, 80);
+	m_OnLineList.InsertColumn(5, "版本", LVCFMT_LEFT, 80);
+	m_OnLineList.InsertColumn(6, "状态", LVCFMT_LEFT, 40);
 	m_ImageOnlinelist.Create(14, 14, ILC_COLOR24 | ILC_MASK, 2, 2);
 	HICON hIcon0 = ::LoadIcon(AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_LIST_ONLINE));
 	m_ImageOnlinelist.Add(hIcon0);
@@ -366,7 +366,6 @@ HCURSOR CNetBotDlg::OnQueryDragIcon()
 
 BOOL CNetBotDlg::DestroyWindow()
 {
-	// TODO: Add your specialized code here and/or call the base class
 	StopListen();
 
 	SOCKET ClientSocket;

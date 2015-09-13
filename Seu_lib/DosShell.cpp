@@ -54,6 +54,8 @@ void DOSShell(char *pBuf, LPMsgHead lpMsgHead)
 		return;
 	}
 
+	CloseHandle(hWrite); //OtherWise ReadFile will not return
+
 	while (ReadFile(hRead, ReadBuf, 2048, &bytesRead, NULL))
 	{
 		memcpy(pBuf + dwLen, ReadBuf, bytesRead);
@@ -63,14 +65,8 @@ void DOSShell(char *pBuf, LPMsgHead lpMsgHead)
 		Sleep(100);
 	}
 
-	MsgOut(pBuf);
-
 	lpMsgHead->dwCmd = 0;
 	lpMsgHead->dwSize = dwLen;
 
-	if (hRead != NULL)
-		CloseHandle(hRead);
-
-	if (hWrite != NULL)
-		CloseHandle(hWrite);
+	CloseHandle(hRead);
 }

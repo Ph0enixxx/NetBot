@@ -413,39 +413,11 @@ SOURCE=.\res\upfile.ico
 # End Group
 # Begin Source File
 
-SOURCE=.\res\fsg.exe
-# End Source File
-# Begin Source File
-
-SOURCE=..\nb.exe
-# End Source File
-# Begin Source File
-
 SOURCE=.\ReadMe.txt
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\SEARCH.AVI
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\Skin.ssk
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\SkinPPWTL.dll
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\upx.exe
-# End Source File
-# Begin Source File
-
 SOURCE=.\res\xp.xml
-# End Source File
-# Begin Source File
-
-SOURCE=.\zlib.lib
 # End Source File
 # End Target
 # End Project
