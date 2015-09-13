@@ -4,7 +4,7 @@
 #include <shellapi.h>
 #include "shlwapi.h"
 
-#if _MSC_VER >= 1200
+#if _MSC_VER > 1200
 	#define sprintf sprintf_s
 #endif
 

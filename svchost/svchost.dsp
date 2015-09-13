@@ -19,6 +19,8 @@ CFG=svchost - Win32 Release
 !MESSAGE 
 !MESSAGE "svchost - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "svchost - Win32 Dll" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "svchost - Win32 Exe Debug" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "svchost - Win32 Dll Debug" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE 
 
 # Begin Project
@@ -82,7 +84,63 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /version:1.0 /pdb:none /machine:I386 /out:"..\nb.exe"
 # SUBTRACT BASE LINK32 /map
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /version:1.0 /dll /pdb:none /machine:I386 /out:"..\Svc.dll"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /version:1.0 /dll /pdb:none /machine:I386 /def:"svchost.def" /out:"..\Svc.dll"
+
+!ELSEIF  "$(CFG)" == "svchost - Win32 Exe Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "svchost___Win32_Exe_Debug"
+# PROP BASE Intermediate_Dir "svchost___Win32_Exe_Debug"
+# PROP BASE Ignore_Export_Lib 0
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "svchost\Exe\Debug"
+# PROP Intermediate_Dir "svchost\Exe\Debug"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MD /W3 /GX /O2 /I "..\\Seu_lib" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ZLIB_WINAPI" /FR /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\\Seu_lib" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ZLIB_WINAPI" /D "DE" /FR /Yu"stdafx.h" /FD /c
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x804 /d "NDEBUG"
+# ADD RSC /l 0x804 /d "NDEBUG"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /version:1.0 /pdb:none /machine:I386 /out:"..\nb.exe"
+# SUBTRACT BASE LINK32 /map
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /version:1.0 /pdb:none /machine:I386 /out:"..\nb.exe"
+# SUBTRACT LINK32 /map
+
+!ELSEIF  "$(CFG)" == "svchost - Win32 Dll Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "svchost___Win32_Dll_Debug"
+# PROP BASE Intermediate_Dir "svchost___Win32_Dll_Debug"
+# PROP BASE Ignore_Export_Lib 0
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "svchost___Win32_Dll_Debug"
+# PROP Intermediate_Dir "svchost___Win32_Dll_Debug"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MD /W3 /GX /O2 /I "..\\Seu_lib" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ZLIB_WINAPI" /D "DLLBUILD" /FR /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\\Seu_lib" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "ZLIB_WINAPI" /D "DLLBUILD" /FR /Yu"stdafx.h" /FD /c
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x804 /d "NDEBUG"
+# ADD RSC /l 0x804 /d "NDEBUG"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /version:1.0 /dll /pdb:none /machine:I386 /def:"svchost.def" /out:"..\Svc.dll"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /version:1.0 /dll /pdb:none /machine:I386 /def:"svchost.def" /out:"..\Svc.dll"
 
 !ENDIF 
 
@@ -90,6 +148,8 @@ LINK32=link.exe
 
 # Name "svchost - Win32 Release"
 # Name "svchost - Win32 Dll"
+# Name "svchost - Win32 Exe Debug"
+# Name "svchost - Win32 Dll Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
@@ -121,10 +181,6 @@ SOURCE=.\StdAfx.cpp
 # Begin Source File
 
 SOURCE=.\svchost.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\svchost.def
 # End Source File
 # Begin Source File
 

@@ -21,10 +21,12 @@ XScreenXor::XScreenXor()
 	m_BmpSize = 0;
 	m_InfoSize = 0;
 	m_ScrWidth = 0;
-	m_ScrHeigth = 0;
+	m_ScrHeight = 0;
 	m_nColor = 8;//默认256色
+	MAXWIDTH = 1920;
+	Radio = 1;
 
-	OpenUserDesktop();
+	//OpenUserDesktop();
 }
 
 XScreenXor::~XScreenXor()
@@ -40,7 +42,7 @@ XScreenXor::~XScreenXor()
 	if (m_pDataSave != NULL)
 		delete[] m_pDataSave;
 
-	CloseUserDesktop();
+	//CloseUserDesktop();
 }
 
 void XScreenXor::SetColor(int iColor)
@@ -62,8 +64,21 @@ void XScreenXor::SetColor(int iColor)
 void XScreenXor::InitGlobalVar()
 {
 	//获得屏幕大小
-	m_ScrWidth = GetSystemMetrics(SM_CXSCREEN);//位图宽度
-	m_ScrHeigth = GetSystemMetrics(SM_CYSCREEN);//位图高度
+	m_ScrWidth = GetSystemMetrics(SM_CXSCREEN);
+	m_ScrHeight = GetSystemMetrics(SM_CYSCREEN);
+
+	if(m_ScrWidth > MAXWIDTH)
+	{
+		Radio = (float)m_ScrWidth / MAXWIDTH;
+		DestHeigth = m_ScrHeight / Radio;
+		DestWidth = MAXWIDTH;
+	}
+	else
+	{
+		Radio = 1;
+		DestHeigth = m_ScrHeight;
+		DestWidth = m_ScrWidth;
+	}
 
 	//计算位图头大小和位图大小
 	int biSize = sizeof(BITMAPINFOHEADER);
@@ -72,7 +87,7 @@ void XScreenXor::InitGlobalVar()
 	else
 		m_InfoSize = biSize + (1 << m_nColor) * sizeof(RGBQUAD);
 
-	m_BmpSize = m_InfoSize + ((m_ScrWidth * m_nColor + 31) / 32 * 4) * m_ScrHeigth;
+	m_BmpSize = m_InfoSize + ((DestWidth * m_nColor + 31) / 32 * 4) * DestHeigth;
 
 	//申请位图存储空间
 	if (m_pData != NULL)
@@ -84,8 +99,8 @@ void XScreenXor::InitGlobalVar()
 	m_pDataSave = new BYTE[m_BmpSize];
 
 	bi.biSize = sizeof(BITMAPINFOHEADER);
-	bi.biWidth = m_ScrWidth;
-	bi.biHeight = m_ScrHeigth;
+	bi.biWidth = DestWidth;
+	bi.biHeight = DestHeigth;
 	bi.biPlanes = 1;
 	bi.biBitCount = m_nColor;
 	bi.biCompression = BI_RGB;
@@ -100,7 +115,7 @@ void XScreenXor::InitGlobalVar()
 	//为屏幕设备描述表创建兼容的内存设备描述表
 	hMemDC = CreateCompatibleDC(hScreenDC);
 	//创建一个与屏幕设备描述表兼容的位图
-	hBitmap = CreateCompatibleBitmap(hScreenDC, m_ScrWidth, m_ScrHeigth);
+	hBitmap = CreateCompatibleBitmap(hScreenDC, DestWidth, DestHeigth);
 }
 
 int XScreenXor::GetInfoSize() const
@@ -220,13 +235,17 @@ void  XScreenXor::CaputreFrameNext(DWORD dwFrame)
 //you should call function 'InitGlobalVar' first
 inline void XScreenXor::SaveScreenBits()
 {
-	PBITMAPINFO      lpBmpInfo; //位图信息
-	//BITMAPINFOHEADER bi;        //位图信息头
+	PBITMAPINFO lpBmpInfo;	//位图信息
 
 	// 把新位图选到内存设备描述表中
 	SelectObject(hMemDC, hBitmap);
 	// 把屏幕设备描述表拷贝到内存设备描述表中
-	::BitBlt(hMemDC, 0, 0, m_ScrWidth, m_ScrHeigth, hScreenDC, 0, 0, SRCCOPY);
+	//::BitBlt(hMemDC, 0, 0, m_ScrWidth, m_ScrHeight, hScreenDC, 0, 0, SRCCOPY);
+
+	//SetStretchBltMode(hScreenDC, HALFTONE);
+	SetStretchBltMode(hScreenDC, COLORONCOLOR);
+
+	::StretchBlt(hMemDC, 0, 0, DestWidth, DestHeigth, hScreenDC, 0, 0, m_ScrWidth, m_ScrHeight, SRCCOPY);
 
 	lpBmpInfo = PBITMAPINFO(m_pData);
 	//把数据拷进去
@@ -236,7 +255,7 @@ inline void XScreenXor::SaveScreenBits()
 		hMemDC,
 		hBitmap,
 		0,
-		m_ScrHeigth,
+		DestHeigth,
 		m_pData + m_InfoSize,
 		lpBmpInfo,
 		DIB_RGB_COLORS);
@@ -246,7 +265,7 @@ void XScreenXor::XorFrame()
 {
 	//更新差异到m_pData
 	int iCount = m_BmpSize / sizeof(DWORD);
-	for (int i = 0; i < m_BmpSize; i++)	//i < m_BmpSize/4
+	for (int i = 0; i < m_BmpSize; i++)
 	{
 		((PDWORD)m_pData)[i] ^= ((PDWORD)m_pDataSave)[i];
 	}

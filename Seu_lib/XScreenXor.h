@@ -51,7 +51,13 @@ private:
 	int m_InfoSize;   //位图头+调色板大小
 
 	int m_ScrWidth;   //屏幕宽度
-	int m_ScrHeigth;  //屏幕高度
+	int m_ScrHeight;  //屏幕高度
+
+	int DestWidth;
+	int DestHeigth;
+
+	int MAXWIDTH;
+	float Radio;
 
 	int m_nColor;     //图像颜色位数
 

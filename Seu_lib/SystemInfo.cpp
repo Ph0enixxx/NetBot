@@ -53,10 +53,16 @@ BOOL GetSystemInfo(SysInfo& info)
 	}
 	wsprintf(info.cOS, "%s SP%d (Build %d)", szSystem, osvi.wServicePackMajor, osvi.dwBuildNumber);
 
-	MEMORYSTATUS mem;
+	MEMORYSTATUSEX mem;
 	mem.dwLength = sizeof(mem);
-	GlobalMemoryStatus(&mem);
-	wsprintf(info.cMemorySize, "%dMB", mem.dwTotalPhys / 1024 / 1024 + 1);
+	
+	//typedef void(WINAPI* FunctionGlobalMemoryStatusEx)(LPMEMORYSTATUS);
+	//FunctionGlobalMemoryStatusEx GlobalMemoryStatusEx;
+	//GlobalMemoryStatusEx = (FunctionGlobalMemoryStatusEx)GetProcAddress(GetModuleHandle("kernel32.dll"), "GlobalMemoryStatusEx");
+
+	GlobalMemoryStatusEx(&mem);//调用函数取得系统的内存情况
+
+	wsprintf(info.cMemorySize, "%dMB", mem.ullTotalPhys / 1024 / 1024 + 1);
 
 	return TRUE;
 }

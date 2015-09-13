@@ -15,7 +15,7 @@ BOOL TurnonKeepAlive(SOCKET s, UINT nKeepAliveSec)
 	struct tcp_keepalive Settings = { 0 };
 	struct tcp_keepalive Retvals = { 0 };
 	Settings.onoff = 1;
-	Settings.keepaliveinterval = 8000; //回应超时间隔，如果出现超时，Windows将重新发送检测包，直到5次全部失败。
+	Settings.keepaliveinterval = 15000; //回应超时间隔，如果出现超时，Windows将重新发送检测包，直到5次全部失败。
 	Settings.keepalivetime = nKeepAliveSec * 1000; //开始首次KeepAlive探测前的TCP空闭时间
 
 	if (::WSAIoctl(s, SIO_KEEPALIVE_VALS, &Settings, sizeof(Settings), &Retvals, sizeof(Retvals), &dwBytes, NULL, NULL) != 0)
@@ -40,7 +40,10 @@ BOOL SendData(SOCKET s, char *data, int len)
 	{
 		iRet = send(s, pData, iLeftSend, 0);
 		if (iRet == 0 || iRet == SOCKET_ERROR)
+		{
+			//MsgErr("Send Data Function Error : %d", WSAGetLastError());
 			return FALSE;
+		}
 
 		iHasSend += iRet;
 		pData += iRet;
@@ -62,11 +65,15 @@ BOOL RecvData(SOCKET s, char *data, int len)
 
 	if (len <= 0)
 		return TRUE;
+
 	while (1)
 	{
 		iRet = recv(s, pData, iLeftRecv, 0);
 		if (iRet == 0 || iRet == SOCKET_ERROR)
+		{
+			//MsgErr("Recv Data Function Error : %d", WSAGetLastError());
 			return FALSE;
+		}
 
 		iHasRecv += iRet;
 		pData += iRet;
