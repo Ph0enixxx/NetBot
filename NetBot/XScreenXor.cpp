@@ -150,8 +150,10 @@ void  XScreenXor::CaputreFrame(DWORD dwFrame)
 	{
 		for (int i = 0; i < iCount; i++)
 		{
-			((PDWORD)m_pData)[i] ^= ((PDWORD)m_pDataSave)[i];
 			((PDWORD)m_pDataSave)[i] ^= ((PDWORD)m_pData)[i];
+			PBYTE tmp = m_pData;
+			m_pData = m_pDataSave;
+			m_pDataSave = tmp;
 		}
 	}
 }

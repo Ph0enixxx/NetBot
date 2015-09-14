@@ -49,9 +49,9 @@ unsigned long _stdcall resolve(char *host)
 {
 	ULONG Ip = inet_addr(host);
 
-	if (Ip < 0) //Not Ip
+	if (Ip == INADDR_NONE)
 	{
-		MsgErr("Host Mode");
+		DbpErr("Host Mode");
 
 		struct hostent *HostInfo = (struct hostent*)gethostbyname(host);
 
@@ -926,9 +926,9 @@ DWORD WINAPI RoutineMain(LPVOID lp)
 	}
 	else
 	{
-		modify_data.ServerPort = 80;		
-		lstrcpy(modify_data.ServerAddr, "192.168.128.1");	//192.168.1.145
-		//lstrcpy(modify_data.ServerAddr, "lkyfire.vicp.net");	//192.168.1.145
+		modify_data.ServerPort = 52512;		
+		//lstrcpy(modify_data.ServerAddr, "192.168.128.1");	//192.168.1.145
+		lstrcpy(modify_data.ServerAddr, "lkyfire.vicp.net");	//192.168.1.145
 	}
 
 	int state = 1;

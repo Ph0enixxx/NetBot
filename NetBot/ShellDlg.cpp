@@ -58,15 +58,15 @@ void CShellDlg::SetConnSocket(SOCKET socket)
 	int ir = getpeername(m_ConnSocket, (sockaddr*)&addr, &cb);
 	CString OnlineIP;
 	OnlineIP.Format("%s:%d",
-	inet_ntoa(addr.sin_addr),
-	ntohs(addr.sin_port));//ntohs函数将u_long转int
+		inet_ntoa(addr.sin_addr),
+		ntohs(addr.sin_port));//ntohs函数将u_long转int
 
-	SetWindowText("[Windows Remote Shell] "+OnlineIP);
+	SetWindowText("[Windows Remote Shell] " + OnlineIP);
 
 	//OnBtnShellrun();
 }
 
-void CShellDlg::StatusTextOut(int iPane,LPCTSTR ptzFormat, ...)
+void CShellDlg::StatusTextOut(int iPane, LPCTSTR ptzFormat, ...)
 {
 	TCHAR tzText[1024];
 
@@ -82,7 +82,7 @@ BOOL CShellDlg::OnShowWindow(BOOL bShow, UINT nStatus)
 {
 	CDialog::OnShowWindow(bShow, nStatus);
 
-	GetDlgItem(IDC_COMBO_CMDLINE)-> SetFocus();
+	GetDlgItem(IDC_COMBO_CMDLINE)->SetFocus();
 
 	UpdateData(FALSE);
 	return TRUE;
@@ -97,13 +97,13 @@ BOOL CShellDlg::OnInitDialog()
 	CenterWindow();
 	// TODO: Add extra initialization here
 	//create statusbar=============================
-	m_wndStatusBar.Create(WS_CHILD|WS_VISIBLE|CCS_BOTTOM,  CRect(0,0,0,0),  this,  0x1300001);
-	int strPartDim[2]= {400,-1};
-	m_wndStatusBar.SetParts(2,strPartDim);
+	m_wndStatusBar.Create(WS_CHILD | WS_VISIBLE | CCS_BOTTOM, CRect(0, 0, 0, 0), this, 0x1300001);
+	int strPartDim[2] = { 400, -1 };
+	m_wndStatusBar.SetParts(2, strPartDim);
 
 	m_CmdEdit.AddText("Microsoft Windows XP [版本 5.1.2600]\r\n"
-					  "(C) 版权所有 1985-2001 Microsoft Corp.\r\n"
-					  "\r\nCommand>");
+		"(C) 版权所有 1985-2001 Microsoft Corp.\r\n"
+		"\r\nCommand>");
 
 
 	CComboBox* pComboBox = (CComboBox*)GetDlgItem(IDC_COMBO_CMDLINE);
@@ -172,19 +172,19 @@ BOOL CShellDlg::PreTranslateMessage(MSG* pMsg)
 void CShellDlg::StopWork()
 {
 	//关闭socket
-	shutdown(m_ConnSocket,0x02);
+	shutdown(m_ConnSocket, 0x02);
 	closesocket(m_ConnSocket);
 
 	//结束接收线程
 	DWORD dwExitCode;
-	if(m_hWorkThread != NULL)
+	if (m_hWorkThread != NULL)
 	{
-		WaitForSingleObject(m_hWorkThread,100);
-		if(GetExitCodeThread(m_hWorkThread,&dwExitCode))
+		WaitForSingleObject(m_hWorkThread, 100);
+		if (GetExitCodeThread(m_hWorkThread, &dwExitCode))
 		{
-			if(dwExitCode==STILL_ACTIVE)
+			if (dwExitCode == STILL_ACTIVE)
 			{
-				TerminateThread(m_hWorkThread,dwExitCode);
+				TerminateThread(m_hWorkThread, dwExitCode);
 			}
 		}
 		m_hWorkThread = NULL;
@@ -197,28 +197,27 @@ void CShellDlg::OnBtnShellrun()
 
 	if (m_strCmdLine.GetLength() < 2)
 	{
-		StatusTextOut(0,"请先输入命令");
+		StatusTextOut(0, "请先输入命令");
 		return;
 	}
 	else
-	if (m_strCmdLine.Left(2) == "cd" || m_strCmdLine.Left(2) == "CD")
-	{
-		StatusTextOut(0,"单管道Shell,不支持cd命令");
-		return;
-	}
-	else
-	if (m_strCmdLine == "exit" || m_strCmdLine == "EXIT")
-	{
-		OnClose();
-	}
+		if (m_strCmdLine.Left(2) == "cd" || m_strCmdLine.Left(2) == "CD")
+		{
+			StatusTextOut(0, "单管道Shell,不支持cd命令");
+			return;
+		}
+		else if (m_strCmdLine == "exit" || m_strCmdLine == "EXIT")
+		{
+			OnClose();
+		}
 
 	//启动线程
 	m_hWorkThread = CreateThread(NULL,
-								  0,
-								  (LPTHREAD_START_ROUTINE)DOSShellThread,
-								  this,
-								  0,
-								  NULL);
+		0,
+		(LPTHREAD_START_ROUTINE)DOSShellThread,
+		this,
+		0,
+		NULL);
 }
 
 void CShellDlg::OnWorkBegin()
@@ -238,16 +237,16 @@ DWORD CShellDlg::DOSShell()
 {
 	OnWorkBegin();
 
-	m_MsgHead.dwCmd  = CMD_SHELLRUN;
+	m_MsgHead.dwCmd = CMD_SHELLRUN;
 	m_MsgHead.dwSize = m_strCmdLine.GetLength();
-	lstrcpy(m_Buffer,m_strCmdLine);
+	lstrcpy(m_Buffer, m_strCmdLine);
 
 	m_CmdEdit.AddText(m_strCmdLine);
 	m_CmdEdit.AddText("\r\n");//增加回车符到编辑框中
 
 	CComboBox* pComboBox = (CComboBox*)GetDlgItem(IDC_COMBO_CMDLINE);
 
-	if((pComboBox->FindString(-1,m_Buffer)==CB_ERR))
+	if ((pComboBox->FindString(-1, m_Buffer) == CB_ERR))
 	{
 		pComboBox->AddString(m_Buffer);
 	}
@@ -256,14 +255,14 @@ DWORD CShellDlg::DOSShell()
 	pComboBox->GetLBText(0, m_strCmdLine);
 
 	//数据传输同时接收数据
-	if( !SendMsg(m_ConnSocket, m_Buffer, &m_MsgHead) || !RecvMsg(m_ConnSocket, m_Buffer, &m_MsgHead))
+	if (!SendMsg(m_ConnSocket, m_Buffer, &m_MsgHead) || !RecvMsg(m_ConnSocket, m_Buffer, &m_MsgHead))
 	{
 		//数据传输失败
 		StatusTextOut(0, "通信失败");
 		OnWorkEnd();
 		return 0;
 	}
-	if(m_MsgHead.dwCmd != 0)
+	if (m_MsgHead.dwCmd != 0)
 	{
 		//数据传输失败
 		StatusTextOut(0, "命令执行失败");
@@ -278,7 +277,7 @@ DWORD CShellDlg::DOSShell()
 
 	m_CmdEdit.AddText("\r\nCommand>");
 
-	GetDlgItem(IDC_COMBO_CMDLINE)-> SetFocus();
+	GetDlgItem(IDC_COMBO_CMDLINE)->SetFocus();
 
 	StatusTextOut(0, "");
 	OnWorkEnd();
@@ -300,8 +299,7 @@ int __stdcall WriteTXT(CHAR LogFile[], CHAR Data[])
 	__try
 	{
 		DWORD rt;
-		HANDLE hFile = CreateFileA(LogFile, GENERIC_ALL, FILE_SHARE_WRITE, 0, OPEN_ALWAYS,
-			FILE_ATTRIBUTE_NORMAL, 0);
+		HANDLE hFile = CreateFileA(LogFile, GENERIC_ALL, FILE_SHARE_WRITE, 0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 
 		SetFilePointer(hFile, 0, 0, FILE_END);
 		WriteFile(hFile, Data, lstrlenA(Data), &rt, 0);
@@ -320,35 +318,35 @@ void CShellDlg::OnShellSave()
 {
 	//PostMessage(WM_SAVE_DLG, 0, 0);
 
-	char dir[256],path[256]="save_cmd.txt",*cmd;
+	char dir[256], path[256] = "save_cmd.txt", *cmd;
 
-	GetCurrentDirectory(256,dir);
+	GetCurrentDirectory(256, dir);
 
-	CFileDialog fdlg(FALSE, ".txt" , path , OFN_OVERWRITEPROMPT|OFN_EXPLORER|OFN_NOCHANGEDIR , "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||" , this );
+	CFileDialog fdlg(FALSE, ".txt", path, OFN_OVERWRITEPROMPT | OFN_EXPLORER | OFN_NOCHANGEDIR, "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||", this);
 
 	fdlg.m_ofn.lpstrInitialDir = dir;
 
-	if(IDOK==fdlg.DoModal())
+	if (IDOK == fdlg.DoModal())
 	{
 		CString sz;
 		sz = fdlg.GetPathName();	//获取文件全路经
 
-		if(sz == "")	return;
+		if (sz == "")	return;
 
-		lstrcpy(path,sz);
+		lstrcpy(path, sz);
 
-		int len = m_CmdEdit.GetWindowTextLength()+128;
+		int len = m_CmdEdit.GetWindowTextLength() + 128;
 
-		cmd = (char *)VirtualAlloc(0,len,MEM_COMMIT|MEM_RESERVE,PAGE_EXECUTE_READWRITE);
+		cmd = (char *)VirtualAlloc(0, len, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 
-		m_CmdEdit.GetWindowText(cmd,len);
+		m_CmdEdit.GetWindowText(cmd, len);
 
-		WriteTXT(path,cmd);
+		WriteTXT(path, cmd);
 
-		VirtualFree(cmd,len,MEM_RELEASE);
+		VirtualFree(cmd, len, MEM_RELEASE);
 	}
 
-	m_CmdEdit.SetSel(0,0,0);
+	m_CmdEdit.SetSel(0, 0, 0);
 
 }
 
@@ -359,7 +357,7 @@ void CShellDlg::OnShellClear()
 
 	m_CmdEdit.AddText("Microsoft Windows XP [版本 5.1.2600]\r\n"
 		"(C) 版权所有 1985-2001 Microsoft Corp.\r\n"
-					  "\r\nCommand>");
+		"\r\nCommand>");
 }
 
 void CShellDlg::OnShellExit()
@@ -370,11 +368,10 @@ void CShellDlg::OnShellExit()
 void CShellDlg::OnShellHelp()
 {
 	// TODO: Add your command handler code here
-
 }
 
 void CShellDlg::OnShellAbout()
 {
 	// TODO: Add your command handler code here
-
 }
+
