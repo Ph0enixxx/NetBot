@@ -11,13 +11,13 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-#define WM_SOCKET_CLOSE    WM_USER+0x2001
+#define WM_SOCKET_CLOSE    WM_USER + 0x2001
 
-#define WM_FILEDLGSHOW     WM_USER+0x1110
-#define WM_SCREENDLGSHOW   WM_USER+0x1111
-#define WM_PROCESSDLGSHOW  WM_USER+0x1112
-#define WM_SHELLDLGSHOW    WM_USER+0x1113
-#define WM_VIDEODLGSHOW    WM_USER+0x1114
+#define WM_FILEDLGSHOW     WM_USER + 0x1110
+#define WM_SCREENDLGSHOW   WM_USER + 0x1111
+#define WM_PROCESSDLGSHOW  WM_USER + 0x1112
+#define WM_SHELLDLGSHOW    WM_USER + 0x1113
+#define WM_VIDEODLGSHOW    WM_USER + 0x1114
 
 typedef struct tagSocketInput
 {
@@ -257,6 +257,7 @@ BOOL CNetBotDlg::OnInitDialog()
 	}
 	RepositionBars(AFX_IDW_CONTROLBAR_FIRST, AFX_IDW_CONTROLBAR_LAST, 0);
 	m_wndtoolbar.LoadTrueColorToolBar(16, IDB_BMP_MAIN, IDB_BMP_MAIN, IDB_BMP_MAIN);
+
 	//-----------------------------------------------------------------------------
 	//设置工具条显示风格为图标加下方文本方式
 	CString strButton;
@@ -277,12 +278,17 @@ BOOL CNetBotDlg::OnInitDialog()
 	////////////////////////////////////////////////////////////////////////
 	//create statusbar
 	m_wndStatusBar.Create(WS_CHILD | WS_VISIBLE | CCS_BOTTOM, CRect(0, 0, 0, 0), this, 0x1000003);
-	int strPartDim[3] = { 350,550,-1 };
+	int strPartDim[3] = { 350, 550, -1 };
 	m_wndStatusBar.SetParts(3, strPartDim);
 	m_wndStatusBar.SetText("当前在线主机 [0]", 2, 0);
 	////////////////////////////////////////////////////////////////////////
 	//create online list
-	ListView_SetExtendedListViewStyle(m_OnLineList.m_hWnd, LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
+	ListView_SetExtendedListViewStyle(m_OnLineList.m_hWnd, LVS_EX_DOUBLEBUFFER |
+		LVS_EX_GRIDLINES |
+		LVS_EX_FULLROWSELECT |
+		LVS_EX_HEADERDRAGDROP |
+		LVS_EX_CHECKBOXES);
+
 	m_OnLineList.InsertColumn(0, "IP地址/端口", LVCFMT_LEFT, 160);
 	m_OnLineList.InsertColumn(1, "计算机名", LVCFMT_LEFT, 140);
 	m_OnLineList.InsertColumn(2, "所在地域", LVCFMT_LEFT, 160);
@@ -519,12 +525,12 @@ void CNetBotDlg::OnSelectComputer(UINT nID)
 	int i = 0;
 	switch (nID)
 	{
-	case IDC_RADIO1: //WinXP
+	case IDC_RADIO1: //WinXP & Win2000 & Win2003
 		for (i = 0; i < AllNum; i++)
 		{
 			CString ip;
 			ip = m_OnLineList.GetItemText(i, 3);
-			if (ip.Find("XP")>0)
+			if (ip.Find("Windows XP") > 0 || ip.Find("Windows 2000") > 0 || ip.Find("Windows 2003") > 0)
 			{
 				m_OnLineList.SetCheck(i, TRUE);
 			}
@@ -532,12 +538,12 @@ void CNetBotDlg::OnSelectComputer(UINT nID)
 				m_OnLineList.SetCheck(i, FALSE);
 		}
 		break;
-	case IDC_RADIO2: //Win2000&2003
+	case IDC_RADIO2: //Windows 7
 		for (i = 0; i < AllNum; i++)
 		{
 			CString ip;
 			ip = m_OnLineList.GetItemText(i, 3);
-			if (ip.Find("2000")>0 || ip.Find("2003") > 0)
+			if (ip.Find("Windows 7") > 0 || ip.Find("Windows Vista") > 0)
 			{
 				m_OnLineList.SetCheck(i, TRUE);
 			}
@@ -545,7 +551,31 @@ void CNetBotDlg::OnSelectComputer(UINT nID)
 				m_OnLineList.SetCheck(i, FALSE);
 		}
 		break;
-	case IDC_RADIO3://Sel All
+	case IDC_RADIO6: //Windows 8
+		for (i = 0; i < AllNum; i++)
+		{
+			CString ip;
+			ip = m_OnLineList.GetItemText(i, 3);
+			if (ip.Find("Windows 8") > 0)
+			{
+				m_OnLineList.SetCheck(i, TRUE);
+			}
+			else
+				m_OnLineList.SetCheck(i, FALSE);
+		}
+	case IDC_RADIO7: //Windows 10
+		for (i = 0; i < AllNum; i++)
+		{
+			CString ip;
+			ip = m_OnLineList.GetItemText(i, 3);
+			if (ip.Find("Windows 10") > 0)
+			{
+				m_OnLineList.SetCheck(i, TRUE);
+			}
+			else
+				m_OnLineList.SetCheck(i, FALSE);
+		}
+	case IDC_RADIO3: //Sel All
 		for (i = 0; i < AllNum; i++)
 		{
 			m_OnLineList.SetCheck(i, TRUE);

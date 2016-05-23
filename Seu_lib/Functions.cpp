@@ -79,8 +79,7 @@ char* GetHttpFile(char Url[])
 {
 	HMODULE hDll;
 	LPVOID hInternet, hUrlHandle;
-	char buf[1000], *retstr = NULL;
-	retstr = buf;
+	char *buf = (PCHAR)VirtualAlloc(10240);
 	DWORD dwFlags;
 
 	hDll = LoadLibraryW(L"wininet.dll");
@@ -105,16 +104,14 @@ char* GetHttpFile(char Url[])
 			hUrlHandle = InternetOpenUrl(hInternet, Url, NULL, 0, 0x04000000, 0);
 			if (hUrlHandle != NULL)
 			{
-				memset(buf, 0, 1000);
-				InternetReadFile(hUrlHandle, buf, 999, &dwFlags);
-				InternetCloseHandle(hUrlHandle);
-				hUrlHandle = NULL;
+				memset(buf, 0, 10240);
+				InternetReadFile(hUrlHandle, buf, 10240, &dwFlags);
 			}
 			InternetCloseHandle(hInternet);
 			hInternet = NULL;
 		}
 		FreeLibrary(hDll);
-		return retstr;
+		return buf;
 	}
 	else
 		return NULL;

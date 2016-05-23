@@ -10,6 +10,13 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#if _MSC_VER > 1700
+#pragma comment(linker,"/NODEFAULTLIB:msvcrt.lib")
+#else
+#pragma comment(linker,"/FILEALIGN:0x200 /IGNORE:4078 /OPT:NOWIN98")
+#pragma comment(linker,"/NODEFAULTLIB:libcmt.lib")
+#endif
+
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 #define _WIN32_WINNT 0x0502
 
@@ -27,4 +34,3 @@
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 
 #endif // !defined(AFX_STDAFX_H__A9DB83DB_A9FD_11D0_BFD1_444553540000__INCLUDED_)
-

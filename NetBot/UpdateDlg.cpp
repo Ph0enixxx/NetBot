@@ -175,7 +175,6 @@ void CUpdateDlg::OnBtnDnsupdate()
 	if (pHttpFile == NULL)
 	{
 		MessageBox("Update Error!", "3322 Domain");
-		pHttpFile->Close();
 		m_Session.Close();
 		return;
 	}
@@ -184,7 +183,7 @@ void CUpdateDlg::OnBtnDnsupdate()
 	pHttpFile->Close();
 	m_Session.Close();
 
-	MessageBox(strTemp, "3322域名");
+	MessageBox(strTemp, "3322 Domian");
 
 	//保存配置信息
 	m_Ini.SetKeyValue("DNS Setting", "DnsUser", m_DnsUser);

@@ -46,13 +46,13 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CTrueColorToolBar message handlers
 BOOL CTrueColorToolBar::LoadTrueColorToolBar(int  nBtnWidth,
-											 UINT uToolBar,
-											 UINT uToolBarHot,
-											 UINT uToolBarDisabled)
+	UINT uToolBar,
+	UINT uToolBarHot,
+	UINT uToolBarDisabled)
 {
 	if (!SetTrueColorToolBar(TB_SETIMAGELIST, uToolBar, nBtnWidth))
 		return FALSE;
-	
+
 	if (uToolBarHot) {
 		if (!SetTrueColorToolBar(TB_SETHOTIMAGELIST, uToolBarHot, nBtnWidth))
 			return FALSE;
@@ -67,35 +67,35 @@ BOOL CTrueColorToolBar::LoadTrueColorToolBar(int  nBtnWidth,
 }
 
 
-BOOL CTrueColorToolBar::SetTrueColorToolBar(UINT uToolBarType, 
-							     	        UINT uToolBar,
-										    int  nBtnWidth)
+BOOL CTrueColorToolBar::SetTrueColorToolBar(UINT uToolBarType,
+	UINT uToolBar,
+	int  nBtnWidth)
 {
 	CImageList	cImageList;
 	CBitmap		cBitmap;
 	BITMAP		bmBitmap;
-	
+
 	if (!cBitmap.Attach(LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(uToolBar),
-								  IMAGE_BITMAP, 0, 0,
-								  LR_DEFAULTSIZE|LR_CREATEDIBSECTION)) ||
-	    !cBitmap.GetBitmap(&bmBitmap))
+		IMAGE_BITMAP, 0, 0,
+		LR_DEFAULTSIZE | LR_CREATEDIBSECTION)) ||
+		!cBitmap.GetBitmap(&bmBitmap))
 		return FALSE;
 
-	CSize		cSize(bmBitmap.bmWidth, bmBitmap.bmHeight); 
-	int			nNbBtn	= cSize.cx/nBtnWidth;
-	RGBTRIPLE*	rgb		= (RGBTRIPLE*)(bmBitmap.bmBits);
-	COLORREF	rgbMask	= RGB(rgb[0].rgbtRed, rgb[0].rgbtGreen, rgb[0].rgbtBlue);
-	
-	if (!cImageList.Create(nBtnWidth, cSize.cy, ILC_COLOR24|ILC_MASK, nNbBtn, 0))
+	CSize		cSize(bmBitmap.bmWidth, bmBitmap.bmHeight);
+	int			nNbBtn = cSize.cx / nBtnWidth;
+	RGBTRIPLE*	rgb = (RGBTRIPLE*)(bmBitmap.bmBits);
+	COLORREF	rgbMask = RGB(rgb[0].rgbtRed, rgb[0].rgbtGreen, rgb[0].rgbtBlue);
+
+	if (!cImageList.Create(nBtnWidth, cSize.cy, ILC_COLOR24 | ILC_MASK, nNbBtn, 0))
 		return FALSE;
-	
+
 	if (cImageList.Add(&cBitmap, rgbMask) == -1)
 		return FALSE;
 
 	SendMessage(uToolBarType, 0, (LPARAM)cImageList.m_hImageList);
-	cImageList.Detach(); 
+	cImageList.Detach();
 	cBitmap.Detach();
-	
+
 	return TRUE;
 }
 
@@ -109,9 +109,9 @@ void CTrueColorToolBar::AddDropDownButton(CWnd* pParent, UINT uButtonID, UINT uM
 	SetButtonStyle(CommandToIndex(uButtonID), TBSTYLE_DROPDOWN);
 
 	stDropDownInfo DropDownInfo;
-	DropDownInfo.pParent	= pParent;
-	DropDownInfo.uButtonID	= uButtonID;
-	DropDownInfo.uMenuID	= uMenuID;
+	DropDownInfo.pParent = pParent;
+	DropDownInfo.uButtonID = uButtonID;
+	DropDownInfo.uMenuID = uMenuID;
 	m_lstDropDownButton.Add(DropDownInfo);
 }
 
@@ -120,7 +120,7 @@ void CTrueColorToolBar::OnToolbarDropDown(NMHDR* pnmhdr, LRESULT *plr)
 	LPNMTOOLBAR pnmtb = reinterpret_cast<LPNMTOOLBAR>(pnmhdr);
 
 	for (int i = 0; i < m_lstDropDownButton.GetSize(); i++) {
-		
+
 		stDropDownInfo DropDownInfo = m_lstDropDownButton.GetAt(i);
 
 		if (DropDownInfo.uButtonID == UINT(pnmtb->iItem)) {
@@ -128,13 +128,13 @@ void CTrueColorToolBar::OnToolbarDropDown(NMHDR* pnmhdr, LRESULT *plr)
 			CMenu menu;
 			menu.LoadMenu(DropDownInfo.uMenuID);
 			CMenu* pPopup = menu.GetSubMenu(0);
-			
+
 			CRect rc;
 			SendMessage(TB_GETRECT, (WPARAM)pnmtb->iItem, (LPARAM)&rc);
 			ClientToScreen(&rc);
-			
-			pPopup->TrackPopupMenu(TPM_LEFTALIGN|TPM_LEFTBUTTON|TPM_VERTICAL,
-				                   rc.left, rc.bottom, DropDownInfo.pParent, &rc);
+
+			pPopup->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_VERTICAL,
+				rc.left, rc.bottom, DropDownInfo.pParent, &rc);
 			break;
 		}
 	}

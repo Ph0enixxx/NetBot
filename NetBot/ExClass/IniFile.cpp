@@ -98,8 +98,6 @@ void CIniFile::SetKeyValue(CString strSection, CString strKey, CString strKeyVal
 		(LPCTSTR)m_strPath);
 }
 
-
-
 void CIniFile::DeleteKey(CString strSection, CString strKey)
 {
 	WritePrivateProfileString((LPCTSTR)strSection, (LPCTSTR)strKey, NULL, (LPCTSTR)m_strPath);
@@ -123,18 +121,15 @@ int CIniFile::GetAllSections(CStringArray& strArrSection)
 	ZeroMemory(chAllSections, MAX_ALLSECTIONS);
 	ZeroMemory(chTempSection, MAX_SECTION);
 
-	dwRetValue = GetPrivateProfileSectionNames(
-		chAllSections,
-		MAX_ALLSECTIONS,
-		m_strPath);
-	//       因为Section在数组中的存放形式为“Section1”，0，“Section2”，0，0。
-	//       所以如果检测到连续两个0，则break
+	dwRetValue = GetPrivateProfileSectionNames(chAllSections, MAX_ALLSECTIONS, m_strPath);
+
+	//因为Section在数组中的存放形式为“Section1”，0，“Section2”，0，0。
+	//所以如果检测到连续两个0，则break
 	for (i = 0; i < MAX_ALLSECTIONS; i++)
 	{
-		if (chAllSections[i] == NULL)
+		if (chAllSections[i] == NULL && chAllSections[i + 1] == NULL)
 		{
-			if (chAllSections[i] == chAllSections[i + 1])
-				break;
+			break;
 		}
 	}
 	i++; //         保证数据读完
@@ -199,8 +194,6 @@ int CIniFile::GetAllKeysAndValues(CString strSection, CStringArray&strArrKey, CS
 	return strArrKey.GetSize();
 }
 
-
-
 void CIniFile::DeleteAllSections()
 {
 	int nSecNum;
@@ -215,4 +208,3 @@ void CIniFile::DeleteAllSections()
 			(LPCTSTR)m_strPath);
 	}
 }
-

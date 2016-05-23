@@ -281,13 +281,5 @@
     <CustomBuild Include="res\outlook\skin1.bin">
       <Filter>Resource Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="res\SEARCH.AVI" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="res\Skin.ssk" />
-    <None Include="res\fsg.exe" />
-    <None Include="res\upx.exe" />
-    <None Include="..\nb.exe" />
-    <None Include="res\SkinPPWTL.dll" />
   </ItemGroup>
 </Project>

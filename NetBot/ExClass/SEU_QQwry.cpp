@@ -142,14 +142,12 @@ int SEU_QQwry::GetStartIPInfo(int iIndex)
 		}
 		else
 		{
-
 			if (m_ei.buf[4] != 2)
 			{
 				m_ei.bMode = 7;// 1 Country跳 Local不跳
 				m_ei.offset2 = m_ei.buf[1] +
 					m_ei.buf[2] * 256 +
 					m_ei.buf[3] * 256 * 256;
-
 			}
 			else
 			{
@@ -191,7 +189,6 @@ CString SEU_QQwry::GetStr(int ioffset)//根据位置读信息
 	}
 	return buf;
 }
-
 
 /*********************************************************************
 * GetCountryLocal(int index)
@@ -308,7 +305,6 @@ void SEU_QQwry::SaveToFile(CString Name)
 	fclose(out);
 }
 
-
 /*********************************************************************
 * IPtoAdd(CString szIP)
 *
@@ -321,7 +317,6 @@ CString SEU_QQwry::IPtoAdd(CString szIP)
 	if (szIP == "")return "请输入IP地址";
 	return GetCountryLocal(GetIndex(szIP));
 }
-
 
 /*********************************************************************
 * GetIndex(CString szIP)
@@ -427,7 +422,6 @@ DWORD SEU_QQwry::IPtoDWORD(CString szIP)
 
 void SEU_QQwry::SetPath(CString path)
 {
-
 	m_bOpen = OpenQQwry(path);
 	GetBE();
 }

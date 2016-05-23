@@ -23,7 +23,7 @@
 #include "../Seu_lib/SystemInfo.h"
 #include "../Seu_lib/Command.h"
 
-#include "..\..\debugh.h"
+#include "..\\..\\debugh.h"
 
 // TODO: reference additional headers your program requires here
 
